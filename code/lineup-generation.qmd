@@ -1,0 +1,267 @@
+---
+title: "Lineup Generation"
+format:
+  html:
+    embed-resources: true
+---
+
+```{r, setup}
+#| warning: FALSE
+#| message: FALSE
+
+library(tidyverse)
+library(purrr)
+library(nullabor)
+library(digest)
+```
+
+# Initial Functions
+
+### Simulate one null data set
+
+**inputs**
+
++ `t`: the maximum time
++ `timestep`: the time increments
++ `mu`: the original mean of the distribution
++ `sigma`: the original standard deviation of the distribution
+
+**outputs**
+
++ one tibble of `t/timestep` `(time, value)` points generated under the null model
+
+```{r nullPlot-function}
+nullPlot <- function(t, timestep, mu, sigma) {
+  
+  repeat{
+    null_data <- tibble(time = seq(1, t, timestep),
+                        value = rnorm(t / timestep, mean = mu, sd = sigma)
+                        ) |> 
+      mutate(value = value - mean(value))
+    
+    if(max(null_data$value) <= 8*mu & min(null_data$value) >= -8*mu){
+      break
+    }
+  }
+  
+  return(null_data)
+  
+}
+
+# test it
+# nullPlot(t = 30, timestep = 1, mu = 1, sigma = 1)
+```
+
+### Simulate target data set
+
+**inputs**
+
++ `t`: the maximum time
++ `timestep`: the time increments
++ `cpLoc`: the location (in proportion) along the $x$-axis in which the change occurs
++ `mu`: the original mean of the distribution
++ `theta`: the shift in mean in terms of $\mu(1+\theta)$
++ `sigma`: the original standard deviation of the distribution
++ `gam`: the change in variance (not using this yet)
+
+**outputs**
+
++ one tibble of `t/timestep` `(time, value)` points generated under the target model
+
+```{r, targetPlot-function}
+targetPlot <- function(t, timestep, cpLoc, mu, theta, sigma, gam){
+  
+  cp = ceiling(t*cpLoc)
+  
+  repeat{
+    target_data <- tibble(time = seq(1, cp, timestep),
+         value = rnorm((cp) / timestep, mean = mu, sd = sigma)) |> 
+    rbind(
+      tibble(time = seq(cp + 1, t, timestep),
+             value = rnorm((t - cp) / timestep, mean = mu*(1+theta), sd = sigma*(1+gam)))
+    ) |>
+    dplyr::mutate(value = value - mean(value),
+                  panel = "target")
+    
+    if(max(target_data$value) <= 8*mu & min(target_data$value) >= -8*mu){
+      break
+    }
+  }
+  
+  return(target_data)
+  
+}
+
+# test it
+# target_data <- targetPlot(t = 30, timestep = 1, cpLoc = 0.5, mu = 1, theta = 1, sigma = 1, gam = 0)
+# target_data 
+
+# target_plot <- target_data |> 
+#   ggplot(aes(x = time, y = value)) +
+#   theme(aspect.ratio = 1,
+#         axis.text = element_blank()
+#         ) +
+#   geom_point(color = "blue", size = 0.75) +
+#   coord_cartesian(ylim = c(-8,8)) 
+# target_plot
+# ggsave(filename = "example-target-plot.png", plot = target_plot)
+
+```
+
+### Calculate T-statistic for measuring change point strength
+
+```{r, calcMetrics}
+
+calcMetrics <- function(t, cpLoc, theta, data){
+  
+  # set up entire data
+  target_data <- data
+  cp = ceiling(t*cpLoc)
+  n  = nrow(target_data)
+  
+  # setup split values (before cp and after cp)
+  x_before    <- as.matrix(target_data[1:cp, "value"])
+  x_after    <- as.matrix(target_data[(cp + 1):n, "value"])
+  
+  # t-test
+  ttest <- t.test(x_after, x_before, var.equal = FALSE)
+
+  # output metrics
+  tibble(Tstat = ttest$statistic,
+         df = n - 2,
+         pvalue = ttest$p.value
+         )
+
+}
+
+# test it
+# target_test <- targetPlot(t = 30, timestep = 1, cpLoc = 0.33, mu = 1, theta = -3, sigma = 1, gam = 0)
+# calcMetrics(t = 30, cpLoc = 1/2, theta = -1, data = target_test)
+```
+
+### Generate a single lineup data set
+
+**inputs**
+
++ `t`: the maximum time
++ `timestep`: the time increments
++ `cpLoc`: the location (in proportion) along the $x$-axis in which the change occurs
++ `mu`: the original mean of the distribution
++ `theta`: the shift in mean in terms of $\mu(1+\theta)$
++ `sigma`: the original standard deviation of the distribution
++ `gam`: the change in variance (not using this yet)
+
+**outputs**
+
++ one tibble of `t/timestep` `(time, value)` points generated under the null model
+
+```{r, lineupData-funciton}
+
+lineupData <- function(t, timestep, cpLoc, mu, theta, sigma, gam){
+  
+    # expand the grid to generate 19 null data sets given mu and sigma
+    null_data <- tibble(panel = "null",
+                        mu = mu,
+                        sigma   = sigma) |> 
+      expand_grid(.n = 1:19) |> 
+      dplyr::mutate(data = pmap(list(t = t, timestep = timestep, mu = mu, sigma = sigma), nullPlot)) |> 
+      unnest(data) |> 
+      select(time, value, panel, .n)
+    
+    # simulate one target data set given parameters
+    target_data <- targetPlot(t = t, timestep = timestep, cpLoc = cpLoc, mu = mu, theta = theta, sigma = sigma, gam = gam)
+    
+    # calculate metrics on target data set
+    metrics <- calcMetrics(t = t, cpLoc = cpLoc, theta = theta, data = target_data)
+      
+    # randomize the position of the target data
+    pos <- sample(1:20, 1)
+    
+    # randomize the data to panels
+    lineup_data <- lineup(true = target_data,
+                          samples = null_data,
+                          pos = pos) |>
+      mutate(obs_plot_location = pos) |>
+      nest(data = -pos) |>
+      cbind(metrics)
+    
+    return(lineup_data)
+
+}
+
+# test it
+poo <- lineupData(t = 30, timestep = 1, cpLoc = 0.5, mu = 1, theta = -5, sigma = 1, gam = 0)
+# lineupData(t = 30, timestep = 1, cpLoc = 0.5, mu = 1, theta = 5, sigma = 2, gam = 0) |>
+#   unnest(data) %>%
+#   select(value) %>%
+#   summary()
+```
+
+# Specify parameter's and generate lineup data
+
+Generate 2 versions of lineups for each parameter (A & B).
+
+```{r, parms}
+# set up a grid of parameter values to test
+parms <- expand_grid(t = 30,
+                     timestep = 1,
+                     cpLoc = c(1/3, 1/2, 2/3),
+                     mu = 1,
+                     theta = c(-5, -3, -1, 0, 1, 3, 5),
+                     sigma = c(1, 2),
+                     gam = 0
+)
+                               
+parms |> knitr::kable(digits = 2)
+
+all_lineups_data <- parms |> 
+  expand_grid(version = c("A", "B")) |>
+  mutate(lineup = pmap(list(t, timestep, cpLoc, mu, theta, sigma, gam), lineupData)) |> 
+  unnest(lineup) |>
+  mutate(param_id = paste(round(cpLoc,2), theta, sigma, sep = "_")) |>
+  mutate(dataset_id = paste(version, round(cpLoc,2), theta, sigma, sep = "_")) |>
+  rowwise() |> 
+  mutate(pic_id = digest(paste(version, round(cpLoc,2), theta, sigma, Sys.time(), sep = "_"), "md5"))
+```
+
+### Plot & save the lineups
+
+```{r plot-lineups, eval = F}
+
+# digest(paste0(, Sys.time(), sep = ""), "md5", serialize = F)
+
+source("save_lineups.R")
+
+picture_details <- all_lineups_data |>
+  select(t, timestep, cpLoc, mu, theta, sigma, gam, version, pos, Tstat, df, pvalue, params, dataset, picid)
+write.csv(picture_details, file = "plots/picture_details.csv", row.names = F)
+
+for(i in 1:nrow(all_lineups_data)){
+  
+  picid <- all_lineups_data[i, "picid"]
+  lineup_data <- all_lineups_data[i,c("picid", "data")] |>
+                    unnest(data)
+  
+  # save lineup data set
+  write.csv(lineup_data, file = paste0("plots/data/", picid, ".csv"), row.names = F)
+  
+  lineup_plot <- lineup_data |>
+                    ggplot(aes(x = time, y = value)) +
+                    theme_bw() +
+                    theme(aspect.ratio = 1,
+                          axis.text = element_blank()
+                          ) +
+                    geom_point(color = "blue", size = 0.75) +
+                    facet_wrap(~ .sample) +
+                    xlab("Time") +
+                    ylab("Measured Values") +
+                    coord_cartesian(ylim = c(-8,8))
+  
+    save_lineup(lineup_plot, filename = picid, path = "plots", width = 10, height = 8.3, dpi = 600)
+
+}
+```
+
+
+
+
