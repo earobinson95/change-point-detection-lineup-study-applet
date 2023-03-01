@@ -35,7 +35,8 @@ shinyServer(function(input, output, session) {
 
     pic_ids <- dbReadTable(db_con, "bib_design") |>
       filter(bib_id == participant_bib_id) |>
-      select(lineup_id)
+      pull(lineup_id) |> 
+      sample(12)
 
     dbDisconnect(db_con)
 

@@ -3,7 +3,7 @@ library(DBI)
 library(tidyverse)
 
 # Connect to Database ----------------------------------------------------------
-filename <- here::here("Time Series Change", "lineup-generation", "cp_lineup_data.db")
+filename <- here::here("cp_lineup_data.db")
 sqlite.driver <- dbDriver("SQLite")
 db_con <- dbConnect(sqlite.driver,
                 dbname = filename)
