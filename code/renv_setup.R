@@ -13,3 +13,5 @@ renv::restore()
 
 # print a diagnostics report summarizing the state of the project
 renv::diagnostics()
+
+renv::isolate()
