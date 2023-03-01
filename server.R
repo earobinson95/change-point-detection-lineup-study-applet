@@ -9,7 +9,7 @@ library(DBI)
 
 # add resource paths so Shiny can see them
 addResourcePath("plots", "plots")
-addResourcePath("trials", "trials")
+# addResourcePath("trials", "trials")
 addResourcePath("examples", "examples")
 
 # define folders
@@ -25,18 +25,18 @@ shinyServer(function(input, output, session) {
 
     # randomization: this needs to be run every connection, not just once.
     db_con <- dbConnect(SQLite(), dbname = "cp_lineup_data.db")
-    
-    # previous_participant_bibset <- 
+
+    # previous_participant_bibset <-
     # current_participant_bibset  <-
-    
+
     participant_bib_set <- sample(1:105, size = 1)
     participant_version <- sample(c("A", "B"), size = 1)
     participant_bib_id <- paste0(participant_version, participant_bib_set)
-    
-    pic_ids <- dbReadTable(db_con, "bib_design") |> 
-      filter(bib_id == participant_bib_id) |> 
+
+    pic_ids <- dbReadTable(db_con, "bib_design") |>
+      filter(bib_id == participant_bib_id) |>
       select(lineup_id)
-    
+
     dbDisconnect(db_con)
 
     # reactive values to control the trials
@@ -44,7 +44,7 @@ shinyServer(function(input, output, session) {
         experiment         = experiment_details$experiment,
         question           = experiment_details$question,
         my_picture_details = NULL,
-        submitted          = FALSE, 
+        submitted          = FALSE,
         choice_reason      = NULL,
         reasons            = strsplit(experiment_details$reasons, ",")[[1]],
         study_start_time   = Sys.time(),
@@ -54,20 +54,20 @@ shinyServer(function(input, output, session) {
         trials_left        = experiment_details$trials_req,
         lpp                = experiment_details$lpp,
         lpp_left           = experiment_details$lpp,
-        lineup_id             = 0, 
-        correct            = NULL, 
+        lineup_id             = 0,
+        correct            = NULL,
         result             = ""
         )
 
     # Show other text input box if "other" choice reason is selected
     observe({
         if (length(values$reasons) == 1) {
-            updateCheckboxInput(session, 
-                                "otheronly", 
+            updateCheckboxInput(session,
+                                "otheronly",
                                 value = TRUE
                                 )
-            updateTextInput(session, 
-                            "other", 
+            updateTextInput(session,
+                            "other",
                             label = "Reason"
                             )
         }
@@ -76,7 +76,7 @@ shinyServer(function(input, output, session) {
     # Provide experiment-appropriate reasoning boxes
     observe({
         updateCheckboxGroupInput(session, "reasoning",
-                                 choices = values$reasons, 
+                                 choices = values$reasons,
                                  selected = NA
                                  )
     })
@@ -215,7 +215,7 @@ shinyServer(function(input, output, session) {
     })
 
     observeEvent(input$submit, {
-      
+
         response <- as.character(input$response_no)
 
 
@@ -241,11 +241,11 @@ shinyServer(function(input, output, session) {
                 # This applies to the lineups, not to the trials
                 values$result <- "Submitted!"
 
-                test <- data.frame(ip_address        = input$ipid, 
+                test <- data.frame(ip_address        = input$ipid,
                                    nick_name         = input$nickname,
                                    study_start_time  = values$study_start_time,
                                    lineup_order      = values$lpp - values$lpp_left + 1,
-                                   lineup_start_time = values$lineup_start_time, 
+                                   lineup_start_time = values$lineup_start_time,
                                    lineup_end_time   = now(),
                                    lineup_id         = values$lineup_id,
                                    response_no       = values$choice,
@@ -299,13 +299,13 @@ shinyServer(function(input, output, session) {
             values$submitted
 
             values$lineup_start_time <- now()
-            
+
             if (is.null(values$my_picture_details)) {
-              
+
               db_con <- dbConnect(SQLite(), dbname = "cp_lineup_data.db")
               picture_details <- dbReadTable(db_con, "picture_details")
               dbDisconnect(db_con)
-              
+
               values$my_picture_details <- left_join(pic_ids, picture_details, by = "lineup_id")
               next_plot <- values$my_picture_details[1,]
             }
@@ -324,16 +324,16 @@ shinyServer(function(input, output, session) {
                                  choices = c("", "Very Uncertain", "Uncertain", "Neutral", "Certain", "Very Certain"),
                                  selected = NULL
                                  )
-            updateTextInput(session, 
-                            "response_no", 
+            updateTextInput(session,
+                            "response_no",
                             value = ""
                             )
-            updateTextInput(session, 
-                            "other", 
+            updateTextInput(session,
+                            "other",
                             value = ""
                             )
-            updateCheckboxGroupInput(session, 
-                                     "reasoning", 
+            updateCheckboxGroupInput(session,
+                                     "reasoning",
                                      selected = NA
                                      )
 
