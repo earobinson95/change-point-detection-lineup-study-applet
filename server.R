@@ -9,7 +9,7 @@ library(DBI)
 
 # add resource paths so Shiny can see them
 addResourcePath("plots", "plots")
-addResourcePath("trials", "trials")
+# addResourcePath("trials", "trials")
 addResourcePath("examples", "examples")
 
 # define folders
