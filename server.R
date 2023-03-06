@@ -9,7 +9,7 @@ library(DBI)
 
 # add resource paths so Shiny can see them
 addResourcePath("plots", "plots")
-# addResourcePath("trials", "trials")
+addResourcePath("trials", "trials")
 addResourcePath("examples", "examples")
 
 # define folders
@@ -35,8 +35,9 @@ shinyServer(function(input, output, session) {
 
     pic_ids <- dbReadTable(db_con, "bib_design") |>
       filter(bib_id == participant_bib_id) |>
-      pull(lineup_id) |> 
-      sample(12)
+      mutate(pic_order = sample(1:n())) |> 
+      arrange(pic_order) |> 
+      select(pic_order, lineup_id)
 
     dbDisconnect(db_con)
 
