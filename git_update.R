@@ -22,7 +22,7 @@ if ("cp_lineup_data.db" %in% modified) {
 
   # Add changed db to commit and commit
   git2r::add(repo = '.', "*.db")
-  try(git2r::commit("*.db", message = "Update data"))
+  try(git2r::commit(message = "Update data"))
   # Update
   git2r::pull(repo = repo, credentials = cred)
   git2r::push(getwd(), credentials = cred)
