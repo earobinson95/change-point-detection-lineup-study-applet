@@ -686,6 +686,14 @@
         "withr"
       ]
     },
+    "git2r": {
+      "Package": "git2r",
+      "Version": "0.31.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "acb972e0be37f83b9c762d962d75a188",
+      "Requirements": []
+    },
     "glue": {
       "Package": "glue",
       "Version": "1.6.2",
