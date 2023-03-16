@@ -1,0 +1,152 @@
+---
+title: "Analysis"
+format: 
+  html:
+    self-contained: true
+    code-fold: true
+editor: source
+execute:
+  echo: true
+  message: false
+  warning: false
+---
+
+```{r setup}
+library(here)
+library(tidyverse)
+library(DT)
+```
+
+## Clean Data (or load cleaned data)
+
+```{r}
+source(here("analysis", "data-cleaning.R"))
+```
+
+## EDA
+
+Look at number of plots per participant
+
+```{r}
+all_data |> 
+  filter(recruited != "",
+         !is.na(lineup_order)) |> 
+  # filter(recruited != "I am the researcher") |> s
+  mutate(participant_id = str_c(nick_name, study_start_time, sep = "-")) |> 
+  count(participant_id) |> 
+  arrange(-n) |> 
+  DT::datatable()
+```
+
+Look at number of replications per treatment
+
+```{r}
+all_data |> 
+  filter(recruited != "",
+         !is.na(lineup_order)) |> 
+  # filter(recruited != "I am the researcher") |>
+  # mutate(participant_id = str_c(nick_name, study_start_time, sep = "-")) |> 
+  count(cpLoc, sigma, theta) |> 
+  complete(cpLoc, sigma, theta) |> 
+  arrange(-n) |> 
+  DT::datatable()
+```
+
+Look at number of participants per version x treatment
+
+```{r}
+all_data |> 
+  filter(recruited != "",
+         !is.na(lineup_order)) |> 
+  # filter(recruited != "I am the researcher") |>
+  # mutate(participant_id = str_c(nick_name, study_start_time, sep = "-")) |> 
+  count(version, cpLoc, sigma, theta) |> 
+  complete(version, cpLoc, sigma, theta) |> 
+  arrange(-n) |> 
+  mutate(n = replace_na(n, 0)) |> 
+  DT::datatable()
+```
+
+Plot of all of that...
+
+```{r}
+all_data |> 
+  filter(recruited != "",
+         !is.na(lineup_order)) |> 
+  # filter(recruited != "I am the researcher") |>
+  # mutate(participant_id = str_c(nick_name, study_start_time, sep = "-")) |> 
+  count(version, cpLoc, sigma, theta) |> 
+  complete(version, cpLoc, sigma, theta) |> 
+  arrange(-n) |> 
+  mutate(n = replace_na(n, 0)) |> 
+  ggplot(aes(x = theta, 
+             y = n, 
+             fill = version)
+         ) +
+  geom_bar(stat     = "identity", 
+           position = "stack") +
+  facet_grid(sigma ~ cpLoc, 
+             labeller = label_both) +
+  scale_fill_brewer(palette = "Paired") +
+  theme_bw() +
+  labs(x = "Theta \n(Mean Shift + Direction)",
+       y = "",
+       title = "Number of Participants who evaluated the lineup",
+       fill = "Version")
+```
+
+
+Look at correctness
+
+```{r}
+all_data |> 
+  filter(recruited != "",
+         !is.na(lineup_order)) |> 
+  # filter(recruited != "I am the researcher") |>
+  mutate(participant_id = str_c(nick_name, study_start_time, sep = "-")) |>
+  select(participant_id, version, cpLoc, sigma, theta, correct, response_no, obs_plot_location) |> 
+  # complete(version, cpLoc, sigma, theta) |>
+  mutate(correct = factor(correct)) |> 
+  ggplot(aes(x = theta, 
+             fill = correct)
+         ) +
+  geom_bar(stat     = "count", 
+           position = "stack") +
+  facet_grid(sigma ~ cpLoc, 
+             labeller = label_both) +
+  scale_fill_brewer(palette = "Paired") +
+  theme_bw() +
+  labs(x = "Theta \n(Mean Shift + Direction)",
+       y = "",
+       title = "Number of Participants who correctly/incorrectly \nidentified the target panel",
+       fill = "Correct Identification\nof Target")
+```
+
+```{r}
+all_data |> 
+  filter(recruited != "",
+         !is.na(lineup_order)) |> 
+  # filter(recruited != "I am the researcher") |>
+  mutate(participant_id = str_c(nick_name, study_start_time, sep = "-")) |>
+  select(participant_id, version, cpLoc, sigma, theta, correct, response_no, obs_plot_location) |> 
+  # complete(version, cpLoc, sigma, theta) |>
+  mutate(correct = factor(correct)) |> 
+  ggplot(aes(x = theta, 
+             fill = correct)
+         ) +
+  geom_bar(stat     = "count", 
+           position = "fill") +
+  facet_grid(sigma ~ cpLoc, 
+             labeller = label_both) +
+  scale_fill_brewer(palette = "Paired") +
+  theme_bw() +
+  labs(x = "Theta \n(Mean Shift + Direction)",
+       y = "",
+       title = "Proportion of Participants who correctly/incorrectly \nidentified the target panel",
+       fill = "Correct Identification\nof Target")
+```
+
+## Binomial GLMM
+
+## Results
+
