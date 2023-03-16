@@ -14,6 +14,7 @@ execute:
 ```{r setup}
 library(here)
 library(tidyverse)
+library(ggtext)
 library(DT)
 ```
 
@@ -79,6 +80,7 @@ all_data |>
   complete(version, cpLoc, sigma, theta) |> 
   arrange(-n) |> 
   mutate(n = replace_na(n, 0)) |> 
+  filter(theta != "0") |> 
   ggplot(aes(x = theta, 
              y = n, 
              fill = version)
@@ -87,12 +89,17 @@ all_data |>
            position = "stack") +
   facet_grid(sigma ~ cpLoc, 
              labeller = label_both) +
-  scale_fill_brewer(palette = "Paired") +
+  scale_fill_brewer(palette = "Dark2") +
   theme_bw() +
   labs(x = "Theta \n(Mean Shift + Direction)",
        y = "",
        title = "Number of Participants who evaluated the lineup",
-       fill = "Version")
+       subtitle = str_c("By ", "<span style = 'color:#1B9E77'>**version A**</span>", " and ", 
+       "<span style = 'color:#D95F02'>**version B**</span>")
+       ) + 
+  theme(plot.subtitle = ggtext::element_markdown(size = 12),
+        legend.position = "none"
+        )
 ```
 
 
@@ -118,8 +125,12 @@ all_data |>
   theme_bw() +
   labs(x = "Theta \n(Mean Shift + Direction)",
        y = "",
-       title = "Number of Participants who correctly/incorrectly \nidentified the target panel",
-       fill = "Correct Identification\nof Target")
+       title = str_c("Number of Participants who ", "<span style = 'color:#1F87B4'>**correctly**</span>", " and ", 
+       "<span style = 'color:#A6CEE3'>**incorrectly**</span>", "<br> identified the target panel")
+       ) + 
+  theme(plot.title = ggtext::element_markdown(size = 14),
+        legend.position = "none"
+        )
 ```
 
 ```{r}
@@ -142,8 +153,12 @@ all_data |>
   theme_bw() +
   labs(x = "Theta \n(Mean Shift + Direction)",
        y = "",
-       title = "Proportion of Participants who correctly/incorrectly \nidentified the target panel",
-       fill = "Correct Identification\nof Target")
+       title = str_c("Proportion of Participants who ", "<span style = 'color:#1F87B4'>**correctly**</span>", " and ", 
+       "<span style = 'color:#A6CEE3'>**incorrectly**</span>", "<br> identified the target panel")
+       ) + 
+  theme(plot.title = ggtext::element_markdown(size = 14),
+        legend.position = "none"
+        )
 ```
 
 ## Binomial GLMM
