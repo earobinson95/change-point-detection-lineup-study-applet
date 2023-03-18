@@ -31,7 +31,7 @@ all_data <- users |>
   full_join(picture_details,
             by = "lineup_id"
             ) |> 
-  mutate(correct = ifelse(obs_plot_location %in% response_no, 1, 0),
+  mutate(correct = ifelse(obs_plot_location == response_no, 1, 0),
          across(c(version, cpLoc, theta, sigma), as.factor))
   # mutate(study_start_time = as.Date(study_start_time))
   
