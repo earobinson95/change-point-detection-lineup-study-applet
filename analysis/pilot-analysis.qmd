@@ -4,6 +4,7 @@ format:
   html:
     self-contained: true
     code-fold: true
+    code-tools: true
 editor: source
 execute:
   echo: true
@@ -158,6 +159,31 @@ all_data |>
        ) + 
   theme(plot.title = ggtext::element_markdown(size = 14),
         legend.position = "none"
+        )
+```
+
+```{r}
+all_data |> 
+  filter(recruited != "",
+         !is.na(lineup_order)) |> 
+  # filter(recruited != "I am the researcher") |>
+  mutate(participant_id = str_c(nick_name, study_start_time, sep = "-")) |>
+  select(participant_id, version, cpLoc, sigma, theta, correct, response_no, obs_plot_location) |> 
+  group_by(cpLoc, sigma, theta) |> 
+  summarize(prop_correct = sum(correct)/n()) |> 
+  ggplot(aes(x = theta, 
+             y = prop_correct)
+         ) +
+  geom_bar(stat = "identity",
+           fill = "#1F87B4") +
+  facet_grid(sigma ~ cpLoc, 
+             labeller = label_both) +
+  theme_bw() +
+  labs(x = "Theta \n(Mean Shift + Direction)",
+       y = "",
+       title = str_c("Proportion of Participants who ", "<span style = 'color:#1F87B4'>**correctly**</span>", " identified the target panel")
+       ) + 
+  theme(plot.title = ggtext::element_markdown(size = 14)
         )
 ```
 
