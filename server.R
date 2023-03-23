@@ -323,7 +323,8 @@ shinyServer(function(input, output, session) {
             values$submitted <- FALSE
 
             updateSelectizeInput(session, "certain",
-                                 choices = c("", "Very Uncertain", "Uncertain", "Neutral", "Certain", "Very Certain"),
+                                 # choices = c("", "Very Uncertain", "Uncertain", "Neutral", "Certain", "Very Certain"),
+                                 choices = c("", "Just Guessing", "Slightly Better than Guessing", "Somewhat Confident", "Confident", "Very Confident"),
                                  selected = NULL
                                  )
             updateTextInput(session,
