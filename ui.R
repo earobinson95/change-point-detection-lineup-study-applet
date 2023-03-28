@@ -183,10 +183,10 @@ fluidPage(
       ),
 
       selectizeInput("certain", "How confident are you?",
-                     # choices = c("", "Very Uncertain", "Uncertain",
-                     #             "Neutral", "Certain", "Very Certain")
-                     choices = c("", "Just Guessing", "Slightly Better than Guessing",
-                                 "Somewhat Confident", "Confident", "Very Confident")
+                     choices = c("", "Very Uncertain", "Uncertain",
+                                 "Neutral", "Certain", "Very Certain")
+                     # choices = c("", "Just Guessing", "Slightly Better than Guessing",
+                     #             "Somewhat Confident", "Confident", "Very Confident")
                      ),
       actionButton("submit", "Submit", icon = icon("caret-right"), class = "btn btn-info"),
       hr(),
