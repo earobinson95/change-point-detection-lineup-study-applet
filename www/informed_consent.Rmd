@@ -25,7 +25,9 @@ You are not expected to get any benefit from being in this study."
 
 #### Will you be compensated for being in this research study?"
 
-You will not be paid to take part in this study.
+If you are completing the study via Prolific, you will be paid \$3 to complete the 15 minute study (rate of \$12/hour). 
+
+If you are completing the study via Reddit or Twitter, you will not be paid to take part in this study. We encourage you to find the study on Prolific if you wish to be compensated.
 
 #### How will information about you be protected?
 Reasonable steps will be taken to protect the privacy and the confidentiality of your study data; however, in some circumstances we cannot guarantee absolute privacy and/or confidentiality. This study will never link personally identifying information with your responses.

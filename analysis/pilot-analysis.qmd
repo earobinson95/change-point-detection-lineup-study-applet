@@ -22,7 +22,7 @@ library(DT)
 ## Clean Data (or load cleaned data)
 
 ```{r}
-source(here("analysis", "data-cleaning.R"))
+source(here("analysis", "pilot-data-cleaning.R"))
 ```
 
 ## EDA

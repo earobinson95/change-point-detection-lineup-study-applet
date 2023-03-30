@@ -6,7 +6,7 @@ library(lubridate)
 # Sent out to GG after Study Start time of 1678393962
 
 # Connect to Database ----------------------------------------------------------
-filename <- here::here("cp_lineup_data.db")
+filename <- here::here("pilot_cp_lineup_data.db")
 sqlite.driver <- dbDriver("SQLite")
 db_con <- dbConnect(sqlite.driver,
                     dbname = filename)

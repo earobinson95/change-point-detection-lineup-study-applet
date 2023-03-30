@@ -97,6 +97,8 @@ fluidPage(
       
       inputUserid("nickname"),
       
+      textInput("prolific_id", "Prolific ID"),
+      
       selectizeInput("age", "Age Range",
                      choices = c("", "Under 19", "19-25", "26-30",
                                  "31-35", "36-40", "41-45", "46-50",
@@ -182,11 +184,11 @@ fluidPage(
                        textInput("other", "Other Reason")
       ),
 
-      selectizeInput("certain", "How confident are you?",
-                     choices = c("", "Very Uncertain", "Uncertain",
-                                 "Neutral", "Certain", "Very Certain")
-                     # choices = c("", "Just Guessing", "Slightly Better than Guessing",
-                     #             "Somewhat Confident", "Confident", "Very Confident")
+      selectizeInput("certain", "I am confident in my answer.",
+                     # choices = c("", "Very Uncertain", "Uncertain",
+                     #             "Neutral", "Certain", "Very Certain")
+                     choices = c("", "Strongly Agree", "Agree",
+                                 "Neutral", "Disagree", "Strongly Disagree")
                      ),
       actionButton("submit", "Submit", icon = icon("caret-right"), class = "btn btn-info"),
       hr(),

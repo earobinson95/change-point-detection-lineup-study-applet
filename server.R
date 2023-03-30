@@ -165,7 +165,8 @@ shinyServer(function(input, output, session) {
     observeEvent(input$submitdemo, {
         if (!is.null(input$nickname) && nchar(input$nickname) > 0 && !any(input$dimension < window_dim_min)) {
             con <- dbConnect(SQLite(), dbname = "cp_lineup_data.db")
-
+            
+            prolific_id    <- ifelse(is.null(input$prolific_id), "", input$prolific_id)
             age            <- ifelse(is.null(input$age), "", input$age)
             gender         <- ifelse(is.null(input$gender), "", input$gender)
             academic_study <- ifelse(is.null(input$education), "", input$education)
@@ -173,7 +174,8 @@ shinyServer(function(input, output, session) {
             health_related <- ifelse(is.null(input$health_related), "", input$health_related)
             stem_related   <- ifelse(is.null(input$stem_related), "", input$stem_related)
 
-            demoinfo       <- data.frame(ip_address       = "",
+            demoinfo       <- data.frame(prolific_id      = prolific_id,
+                                         ip_address       = "",
                                          nick_name        = input$nickname,
                                          study_start_time = values$study_start_time,
                                          bib_id           = participant_bib_id,
@@ -243,7 +245,11 @@ shinyServer(function(input, output, session) {
                 # This applies to the lineups, not to the trials
                 values$result <- "Submitted!"
 
-                test <- data.frame(ip_address        = input$ipid,
+                
+                prolific_id    <- ifelse(is.null(input$prolific_id), "", input$prolific_id)
+                
+                test <- data.frame(prolific_id       = prolific_id,
+                                   ip_address        = input$ipid,
                                    nick_name         = input$nickname,
                                    study_start_time  = values$study_start_time,
                                    lineup_order      = values$lpp - values$lpp_left + 1,
@@ -267,8 +273,8 @@ shinyServer(function(input, output, session) {
 
                 # Generate completion code
                 if (values$lpp_left == 0) {
-                    values$question <- "All done! Congratulations!"
-                    #values$question <- paste("All done! Congratulations! Please click the URL to complete the study:")
+                    # values$question <- "All done! Congratulations!"
+                    values$question <- paste("All done! Congratulations! Please copy-paste the following completion code to Prolific: \n \n CKQK346R")
                     updateCheckboxInput(session, "done", value = TRUE)
                 }
 
@@ -323,8 +329,8 @@ shinyServer(function(input, output, session) {
             values$submitted <- FALSE
 
             updateSelectizeInput(session, "certain",
-                                 choices = c("", "Very Uncertain", "Uncertain", "Neutral", "Certain", "Very Certain"),
-                                 # choices = c("", "Just Guessing", "Slightly Better than Guessing", "Somewhat Confident", "Confident", "Very Confident"),
+                                 # choices = c("", "Very Uncertain", "Uncertain", "Neutral", "Certain", "Very Certain"),
+                                 choices = c("", "Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"),
                                  selected = NULL
                                  )
             updateTextInput(session,

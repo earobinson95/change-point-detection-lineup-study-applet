@@ -33,7 +33,8 @@ experiment_details
 feedback <- dbReadTable(db_con,"feedback")
 
 # setup original data
-feedback <- tibble("ip_address"        = NA,
+feedback <- tibble("prolific_id"       = NA,
+                   "ip_address"        = NA,
                    "nick_name"         = NA,
                    "study_start_time"  = NA,
                    "lineup_order"      = NA,
@@ -114,7 +115,8 @@ bib_design
 users <- dbReadTable(db_con,"users")
 
 # setup original data
-users <- tibble("ip_address"        = NA,
+users <- tibble("prolific_id"       = NA,
+                "ip_address"        = NA,
                 "nick_name"         = NA,
                 "study_start_time"  = NA,
                 "bib_id"            = NA,
