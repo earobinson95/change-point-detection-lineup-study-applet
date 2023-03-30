@@ -1,0 +1,188 @@
+---
+title: "Prolific Analysis"
+format: 
+  html:
+    self-contained: true
+    code-fold: true
+    code-tools: true
+editor: source
+execute:
+  echo: true
+  message: false
+  warning: false
+  error: true
+---
+
+```{r setup}
+library(here)
+library(tidyverse)
+library(ggtext)
+library(DT)
+```
+
+## Clean Data (or load cleaned data)
+
+```{r}
+source(here("analysis", "prolific-data-cleaning.R"))
+```
+
+## EDA
+
+Look at number of plots per participant
+
+```{r}
+all_data |> 
+  filter(recruited != "",
+         !is.na(lineup_order)) |> 
+  # filter(recruited != "I am the researcher") |>
+  # count(prolific_id, participant_id) |>
+  # count(participant_id) |>
+  count(prolific_id) |>
+  # arrange(-n) |> 
+  DT::datatable()
+```
+
+Look at number of replications per treatment
+
+```{r}
+all_data |> 
+  filter(recruited != "",
+         !is.na(lineup_order)) |> 
+  # filter(recruited != "I am the researcher") |>
+  count(cpLoc, sigma, theta) |> 
+  complete(cpLoc, sigma, theta) |> 
+  arrange(-n) |> 
+  DT::datatable()
+```
+
+Look at number of participants per version x treatment
+
+```{r}
+all_data |> 
+  filter(recruited != "",
+         !is.na(lineup_order)) |> 
+  # filter(recruited != "I am the researcher") |>
+  count(version, cpLoc, sigma, theta) |> 
+  complete(version, cpLoc, sigma, theta) |> 
+  arrange(-n) |> 
+  mutate(n = replace_na(n, 0)) |> 
+  DT::datatable()
+```
+
+Plot of all of that...
+
+```{r}
+all_data |> 
+  filter(recruited != "",
+         !is.na(lineup_order)) |> 
+  # filter(recruited != "I am the researcher") |>
+  count(version, cpLoc, sigma, theta) |> 
+  complete(version, cpLoc, sigma, theta) |> 
+  arrange(-n) |> 
+  mutate(n = replace_na(n, 0)) |> 
+  filter(theta != "0") |> 
+  ggplot(aes(x = theta, 
+             y = n, 
+             fill = version)
+         ) +
+  geom_bar(stat     = "identity", 
+           position = "stack") +
+  facet_grid(sigma ~ cpLoc, 
+             labeller = label_both) +
+  scale_fill_brewer(palette = "Dark2") +
+  theme_bw() +
+  labs(x = "Theta \n(Mean Shift + Direction)",
+       y = "",
+       title = "Number of Participants who evaluated the lineup",
+       subtitle = str_c("By ", "<span style = 'color:#1B9E77'>**version A**</span>", " and ", 
+       "<span style = 'color:#D95F02'>**version B**</span>")
+       ) + 
+  theme(plot.subtitle = ggtext::element_markdown(size = 12),
+        legend.position = "none"
+        )
+```
+
+Look at correctness
+
+```{r}
+all_data |> 
+  filter(recruited != "",
+         !is.na(lineup_order)) |> 
+  # filter(recruited != "I am the researcher") |>
+  select(participant_id, version, cpLoc, sigma, theta, correct, response_no, obs_plot_location) |> 
+  # complete(version, cpLoc, sigma, theta) |>
+  mutate(correct = factor(correct)) |> 
+  ggplot(aes(x = theta, 
+             fill = correct)
+         ) +
+  geom_bar(stat     = "count", 
+           position = "stack") +
+  facet_grid(sigma ~ cpLoc, 
+             labeller = label_both) +
+  scale_fill_brewer(palette = "Paired") +
+  theme_bw() +
+  labs(x = "Theta \n(Mean Shift + Direction)",
+       y = "",
+       title = str_c("Number of Participants who ", "<span style = 'color:#1F87B4'>**correctly**</span>", " and ", 
+       "<span style = 'color:#A6CEE3'>**incorrectly**</span>", "<br> identified the target panel")
+       ) + 
+  theme(plot.title = ggtext::element_markdown(size = 14),
+        legend.position = "none"
+        )
+```
+
+```{r}
+all_data |> 
+  filter(recruited != "",
+         !is.na(lineup_order)) |> 
+  # filter(recruited != "I am the researcher") |>
+  select(participant_id, version, cpLoc, sigma, theta, correct, response_no, obs_plot_location) |> 
+  # complete(version, cpLoc, sigma, theta) |>
+  mutate(correct = factor(correct)) |> 
+  ggplot(aes(x = theta, 
+             fill = correct)
+         ) +
+  geom_bar(stat     = "count", 
+           position = "fill") +
+  facet_grid(sigma ~ cpLoc, 
+             labeller = label_both) +
+  scale_fill_brewer(palette = "Paired") +
+  theme_bw() +
+  labs(x = "Theta \n(Mean Shift + Direction)",
+       y = "",
+       title = str_c("Proportion of Participants who ", "<span style = 'color:#1F87B4'>**correctly**</span>", " and ", 
+       "<span style = 'color:#A6CEE3'>**incorrectly**</span>", "<br> identified the target panel")
+       ) + 
+  theme(plot.title = ggtext::element_markdown(size = 14),
+        legend.position = "none"
+        )
+```
+
+```{r}
+all_data |> 
+  filter(recruited != "",
+         !is.na(lineup_order)) |> 
+  # filter(recruited != "I am the researcher") |>
+  select(participant_id, version, cpLoc, sigma, theta, correct, response_no, obs_plot_location) |> 
+  group_by(cpLoc, sigma, theta) |> 
+  summarize(prop_correct = sum(correct)/n()) |> 
+  ggplot(aes(x = theta, 
+             y = prop_correct)
+         ) +
+  geom_bar(stat = "identity",
+           fill = "#1F87B4") +
+  facet_grid(sigma ~ cpLoc, 
+             labeller = label_both) +
+  theme_bw() +
+  labs(x = "Theta \n(Mean Shift + Direction)",
+       y = "",
+       title = str_c("Proportion of Participants who ", "<span style = 'color:#1F87B4'>**correctly**</span>", " identified the target panel")
+       ) + 
+  theme(plot.title = ggtext::element_markdown(size = 14)
+        )
+```
+
+## Binomial GLMM
+
+## Results
+
