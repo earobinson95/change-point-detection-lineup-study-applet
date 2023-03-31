@@ -30,10 +30,12 @@ all_data <- users |>
             ) |> 
   left_join(picture_details,
             by = "lineup_id"
-            ) |> 
+            ) |>
   mutate(participant_id = str_c(nick_name, study_start_time, sep = "-")) |>
+  filter(recruited != "I am the researcher") |>
   mutate(correct = ifelse(obs_plot_location == response_no, 1, 0),
-         across(c(version, cpLoc, theta, sigma), as.factor))
+         across(c(version, cpLoc, theta, sigma), as.factor)) #|> 
+  # filter(!is.na(cpLoc), !is.na(sigma), !is.na(theta))
   # mutate(study_start_time = as.Date(study_start_time))
   
 

@@ -32,8 +32,7 @@ Look at number of plots per participant
 
 ```{r}
 all_data |> 
-  filter(recruited != "",
-         !is.na(lineup_order)) |> 
+  # filter(!is.na(lineup_order)) |> 
   # filter(recruited != "I am the researcher") |>
   # count(prolific_id, participant_id) |>
   # count(participant_id) |>
@@ -46,8 +45,8 @@ Look at number of replications per treatment
 
 ```{r}
 all_data |> 
-  filter(recruited != "",
-         !is.na(lineup_order)) |> 
+  # filter(recruited != "",
+  #        !is.na(lineup_order)) |> 
   # filter(recruited != "I am the researcher") |>
   count(cpLoc, sigma, theta) |> 
   complete(cpLoc, sigma, theta) |> 
@@ -59,8 +58,8 @@ Look at number of participants per version x treatment
 
 ```{r}
 all_data |> 
-  filter(recruited != "",
-         !is.na(lineup_order)) |> 
+  # filter(recruited != "",
+  #        !is.na(lineup_order)) |> 
   # filter(recruited != "I am the researcher") |>
   count(version, cpLoc, sigma, theta) |> 
   complete(version, cpLoc, sigma, theta) |> 
@@ -73,8 +72,8 @@ Plot of all of that...
 
 ```{r}
 all_data |> 
-  filter(recruited != "",
-         !is.na(lineup_order)) |> 
+  # filter(recruited != "",
+  #        !is.na(lineup_order)) |> 
   # filter(recruited != "I am the researcher") |>
   count(version, cpLoc, sigma, theta) |> 
   complete(version, cpLoc, sigma, theta) |> 
@@ -106,8 +105,8 @@ Look at correctness
 
 ```{r}
 all_data |> 
-  filter(recruited != "",
-         !is.na(lineup_order)) |> 
+  # filter(recruited != "",
+  #        !is.na(lineup_order)) |> 
   # filter(recruited != "I am the researcher") |>
   select(participant_id, version, cpLoc, sigma, theta, correct, response_no, obs_plot_location) |> 
   # complete(version, cpLoc, sigma, theta) |>
@@ -133,8 +132,8 @@ all_data |>
 
 ```{r}
 all_data |> 
-  filter(recruited != "",
-         !is.na(lineup_order)) |> 
+  # filter(recruited != "",
+  #        !is.na(lineup_order)) |> 
   # filter(recruited != "I am the researcher") |>
   select(participant_id, version, cpLoc, sigma, theta, correct, response_no, obs_plot_location) |> 
   # complete(version, cpLoc, sigma, theta) |>
@@ -160,8 +159,8 @@ all_data |>
 
 ```{r}
 all_data |> 
-  filter(recruited != "",
-         !is.na(lineup_order)) |> 
+  # filter(recruited != "",
+  #        !is.na(lineup_order)) |> 
   # filter(recruited != "I am the researcher") |>
   select(participant_id, version, cpLoc, sigma, theta, correct, response_no, obs_plot_location) |> 
   group_by(cpLoc, sigma, theta) |> 
