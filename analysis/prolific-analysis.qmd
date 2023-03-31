@@ -5,6 +5,7 @@ format:
     self-contained: true
     code-fold: true
     code-tools: true
+    toc: true
 editor: source
 execute:
   echo: true
@@ -24,6 +25,20 @@ library(DT)
 
 ```{r}
 source(here("analysis", "prolific-data-cleaning.R"))
+```
+
+### Feedback data
+
+```{r}
+feedback |>
+  DT::datatable()
+```
+
+### User's data
+
+```{r}
+users |>
+  DT::datatable()
 ```
 
 ## EDA
@@ -49,7 +64,7 @@ feedback |>
   # count(participant_id) |>
   count(prolific_id) |>
   # arrange(-n) |> 
-  DT::datatable()
+  DT::datatable(rownames = F)
 ```
 
 Look at number of replications per treatment
