@@ -30,8 +30,19 @@ source(here("analysis", "prolific-data-cleaning.R"))
 
 Look at number of plots per participant
 
+<!-- # ```{r} -->
+<!-- # all_data |>  -->
+<!-- #   # filter(!is.na(lineup_order)) |>  -->
+<!-- #   # filter(recruited != "I am the researcher") |> -->
+<!-- #   # count(prolific_id, participant_id) |> -->
+<!-- #   # count(participant_id) |> -->
+<!-- #   count(prolific_id) |> -->
+<!-- #   # arrange(-n) |>  -->
+<!-- #   DT::datatable() -->
+<!-- # ``` -->
+
 ```{r}
-all_data |> 
+feedback |> 
   # filter(!is.na(lineup_order)) |> 
   # filter(recruited != "I am the researcher") |>
   # count(prolific_id, participant_id) |>

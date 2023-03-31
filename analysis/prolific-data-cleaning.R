@@ -26,16 +26,16 @@ dbDisconnect(db_con)
 
 all_data <- users |> 
   full_join(feedback, 
-            by = c("prolific_id", "nick_name", "study_start_time")
+            by = c("prolific_id", "nick_name")
             ) |> 
   left_join(picture_details,
             by = "lineup_id"
             ) |>
-  mutate(participant_id = str_c(nick_name, study_start_time, sep = "-")) |>
+  mutate(participant_id = nick_name) |>
   filter(recruited != "I am the researcher") |>
   mutate(correct = ifelse(obs_plot_location == response_no, 1, 0),
-         across(c(version, cpLoc, theta, sigma), as.factor)) #|> 
-  # filter(!is.na(cpLoc), !is.na(sigma), !is.na(theta))
+         across(c(version, cpLoc, theta, sigma), as.factor)) |> 
+  filter(!is.na(cpLoc), !is.na(sigma), !is.na(theta))
   # mutate(study_start_time = as.Date(study_start_time))
   
 
