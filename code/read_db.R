@@ -133,7 +133,7 @@ users <- users[0,]
 
 # replace in db
 dbRemoveTable(db_con, "users")
-dbWriteTable(db_con, "users", users)
+dbWriteTable(db_con, "users", users, overwrite = T)
 
 # double check
 users <- dbReadTable(db_con,"users")
