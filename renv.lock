@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.2.2",
+    "Version": "4.2.3",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -40,6 +40,22 @@
       "Repository": "CRAN",
       "Hash": "b18b34cfbf932e17803c2e3e4b1a2d2a",
       "Requirements": []
+    },
+    "DT": {
+      "Package": "DT",
+      "Version": "0.27",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "3444e6ed78763f9f13aaa39f2481eb34",
+      "Requirements": [
+        "crosstalk",
+        "htmltools",
+        "htmlwidgets",
+        "jquerylib",
+        "jsonlite",
+        "magrittr",
+        "promises"
+      ]
     },
     "DoE.base": {
       "Package": "DoE.base",
@@ -394,6 +410,19 @@
       "Hash": "e8a1e41acf02548751f45c718d55aa6a",
       "Requirements": []
     },
+    "crosstalk": {
+      "Package": "crosstalk",
+      "Version": "1.2.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "6aa54f69598c32177e920eb3402e8293",
+      "Requirements": [
+        "R6",
+        "htmltools",
+        "jsonlite",
+        "lazyeval"
+      ]
+    },
     "curl": {
       "Package": "curl",
       "Version": "4.3.3",
@@ -686,6 +715,19 @@
         "withr"
       ]
     },
+    "ggtext": {
+      "Package": "ggtext",
+      "Version": "0.1.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "c5ba8f5056487403a299b91984be86ca",
+      "Requirements": [
+        "ggplot2",
+        "gridtext",
+        "rlang",
+        "scales"
+      ]
+    },
     "git2r": {
       "Package": "git2r",
       "Version": "0.31.0",
@@ -777,6 +819,23 @@
         "jsonlite"
       ]
     },
+    "gridtext": {
+      "Package": "gridtext",
+      "Version": "0.1.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "05e4f5fffb1eecfeaac9ea0b7f255fef",
+      "Requirements": [
+        "Rcpp",
+        "curl",
+        "jpeg",
+        "markdown",
+        "png",
+        "rlang",
+        "stringr",
+        "xml2"
+      ]
+    },
     "gtable": {
       "Package": "gtable",
       "Version": "0.3.1",
@@ -852,6 +911,20 @@
         "rlang"
       ]
     },
+    "htmlwidgets": {
+      "Package": "htmlwidgets",
+      "Version": "1.6.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "a865aa85bcb2697f47505bfd70422471",
+      "Requirements": [
+        "htmltools",
+        "jsonlite",
+        "knitr",
+        "rmarkdown",
+        "yaml"
+      ]
+    },
     "httpuv": {
       "Package": "httpuv",
       "Version": "1.6.7",
@@ -909,6 +982,14 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "0080607b4a1a7b28979aecef976d8bc2",
+      "Requirements": []
+    },
+    "jpeg": {
+      "Package": "jpeg",
+      "Version": "0.1-10",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "031a0b683d001a7519202f0628fc0358",
       "Requirements": []
     },
     "jquerylib": {
@@ -978,6 +1059,14 @@
       "Hash": "b64cdbb2b340437c4ee047a1f4c4377b",
       "Requirements": []
     },
+    "lazyeval": {
+      "Package": "lazyeval",
+      "Version": "0.2.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "d908914ae53b04d4c0c0fd72ecc35370",
+      "Requirements": []
+    },
     "lifecycle": {
       "Package": "lifecycle",
       "Version": "1.0.3",
@@ -1019,6 +1108,17 @@
       "Hash": "7ce2733a9826b3aeb1775d56fd305472",
       "Requirements": []
     },
+    "markdown": {
+      "Package": "markdown",
+      "Version": "1.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "d209cfd1f4ff7260eae5a7f07da3aa4f",
+      "Requirements": [
+        "commonmark",
+        "xfun"
+      ]
+    },
     "mathjaxr": {
       "Package": "mathjaxr",
       "Version": "1.6-0",
@@ -1048,10 +1148,10 @@
     },
     "mgcv": {
       "Package": "mgcv",
-      "Version": "1.8-41",
+      "Version": "1.8-42",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "6b3904f13346742caa3e82dd0303d4ad",
+      "Hash": "3460beba7ccc8946249ba35327ba902a",
       "Requirements": [
         "Matrix",
         "nlme"
@@ -1210,6 +1310,14 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "09eb987710984fc2905c7129c7d85e65",
+      "Requirements": []
+    },
+    "png": {
+      "Package": "png",
+      "Version": "0.1-8",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "bd54ba8a0a5faded999a7aab6e46b374",
       "Requirements": []
     },
     "polynom": {
