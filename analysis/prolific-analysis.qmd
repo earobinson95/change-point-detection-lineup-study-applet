@@ -209,5 +209,12 @@ all_data |>
 
 ## Binomial GLMM
 
+
+```{r}
+
+all_data |> 
+  count(prolific_id) |> 
+  filter(between(n,12,24))
+```
 ## Results
 
