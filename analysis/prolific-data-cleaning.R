@@ -112,7 +112,7 @@ all_data_clean <- all_data_orig|>
   mutate(nlineupstime = n()) |> 
   ungroup() |> 
   filter(nlineups >= 12) |> 
-  filter(nlineupstime == 12) |> 
+  filter(nlineupstime == 12) |>
   select(participant_id, nlineups, nlineupstime, study_start_time, age, gender, academic_study, health_related, stem_related,
          recruited, bib_id, lineup_order, lineup_start_time, lineup_end_time, lineup_id,
          dataset_id, param_id, mu, theta, cpLoc, sigma, gam, version, obs_plot_location, response_no, correct,
@@ -122,7 +122,7 @@ dim(all_data_clean)
 nrow(all_data_clean) / 12
 unique(all_data_clean$participant_id) |> length()
 
-  
+write_csv(all_data_clean, file = "analysis/data/lineup_clean.csv")  
 
 ### Test the idb ---------------------------------------------------------------
 # n = 210

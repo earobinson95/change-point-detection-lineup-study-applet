@@ -25,7 +25,8 @@ library(DT)
 
 ```{r}
 #| output: false
-source(here("analysis", "prolific-data-cleaning.R"))
+# source(here("analysis", "prolific-data-cleaning.R"))
+all_data_clean <- read_csv(here("data", "lineup_clean.csv"))
 ```
 
 <!-- ### Feedback data -->
@@ -58,9 +59,9 @@ Look at number of plots per participant
 <!-- # ``` -->
 
 ```{r}
-all_data_orig |>
-  count(participant_id) |>
-  DT::datatable(rownames = F)
+# all_data_orig |>
+#   count(participant_id) |>
+#   DT::datatable(rownames = F)
 ```
 
 ```{r}
@@ -193,17 +194,59 @@ all_data_clean |>
 ## Binomial GLMM
 
 ```{r}
+#| eval: false
 library(lme4)
 library(emmeans)
 
-mod <- glmer(correct ~ theta*sigma*cpLoc + (1 | participant_id) + (1 | lineup_id),
+mod <- glmer(correct ~ theta + sigma + cpLoc + theta:sigma + theta:cpLoc + (1 | participant_id),
+             family = binomial(),
+             control = glmerControl(optimizer = "bobyqa",
+                                    optCtrl   = list(maxfun = 20000)
+             ),
+             data = all_data_clean
+             )
+
+mod <- glmer(correct ~ theta*sigma*cpLoc + (1 | participant_id),
+             family = binomial(),
+             control = glmerControl(optimizer = "bobyqa",
+                                    optCtrl   = list(maxfun = 20000)
+             ),
+             data = all_data_clean
+             )
+
+summary(mod)
+
+mod <- glmer(correct ~ (1 |theta) + (1 | sigma) + (1|cpLoc) + (1|theta:sigma) + (1|theta:cpLoc)  + (1 | participant_id),
              family = binomial(),
              data = all_data_clean
              )
 
-anova(mod)
+summary(mod)
+mod |> profile() |> confint()
 
+mod_glm <- glm(correct ~ theta*sigma*cpLoc + participant_id,
+             family = binomial(),
+             data = all_data_clean
+             )
+
+mod <- glm(correct ~ theta*sigma*cpLoc + lineup_id,
+             family = binomial(),
+             data = all_data_clean
+             )
+
+mod <- glm(correct ~ theta*sigma*cpLoc + participant_id + lineup_id,
+             family = binomial(),
+             data = all_data_clean
+             )
+
+aov(mod_glm) |> 
+  summary()
+
+
+car::Anova(mod)
+anova(mod)
 estimates <- emmeans(mod, ~ theta:sigma:cpLoc, type = "response")
+estimates 
   
 ```
 
