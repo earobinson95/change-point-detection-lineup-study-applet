@@ -24,17 +24,18 @@ library(DT)
 ## Clean Data (or load cleaned data)
 
 ```{r}
+#| output: false
 source(here("analysis", "prolific-data-cleaning.R"))
 ```
 
-### Feedback data
+<!-- ### Feedback data -->
 
 ```{r}
 # feedback |>
 #   DT::datatable()
 ```
 
-### User's data
+<!-- ### User's data -->
 
 ```{r}
 # users |>
@@ -57,23 +58,21 @@ Look at number of plots per participant
 <!-- # ``` -->
 
 ```{r}
-all_data |> 
-  # filter(!is.na(lineup_order)) |> 
-  # filter(recruited != "I am the researcher") |>
-  # count(prolific_id, participant_id) |>
+all_data_orig |>
   count(participant_id) |>
-  # count(prolific_id) |>
-  # arrange(-n) |> 
+  DT::datatable(rownames = F)
+```
+
+```{r}
+all_data_clean |>
+  count(participant_id) |>
   DT::datatable(rownames = F)
 ```
 
 Look at number of replications per treatment
 
 ```{r}
-all_data |> 
-  # filter(recruited != "",
-  #        !is.na(lineup_order)) |> 
-  # filter(recruited != "I am the researcher") |>
+all_data_clean |> 
   count(cpLoc, sigma, theta) |> 
   complete(cpLoc, sigma, theta) |> 
   arrange(-n) |> 
@@ -83,10 +82,7 @@ all_data |>
 Look at number of participants per version x treatment
 
 ```{r}
-all_data |> 
-  # filter(recruited != "",
-  #        !is.na(lineup_order)) |> 
-  # filter(recruited != "I am the researcher") |>
+all_data_clean |> 
   count(version, cpLoc, sigma, theta) |> 
   complete(version, cpLoc, sigma, theta) |> 
   arrange(-n) |> 
@@ -97,10 +93,7 @@ all_data |>
 Plot of all of that...
 
 ```{r}
-all_data |> 
-  # filter(recruited != "",
-  #        !is.na(lineup_order)) |> 
-  # filter(recruited != "I am the researcher") |>
+all_data_clean |>
   count(version, cpLoc, sigma, theta) |> 
   complete(version, cpLoc, sigma, theta) |> 
   arrange(-n) |> 
@@ -130,12 +123,8 @@ all_data |>
 Look at correctness
 
 ```{r}
-all_data |> 
-  # filter(recruited != "",
-  #        !is.na(lineup_order)) |> 
-  # filter(recruited != "I am the researcher") |>
+all_data_clean |> 
   select(participant_id, version, cpLoc, sigma, theta, correct, response_no, obs_plot_location) |> 
-  # complete(version, cpLoc, sigma, theta) |>
   mutate(correct = factor(correct)) |> 
   ggplot(aes(x = theta, 
              fill = correct)
@@ -157,10 +146,7 @@ all_data |>
 ```
 
 ```{r}
-all_data |> 
-  # filter(recruited != "",
-  #        !is.na(lineup_order)) |> 
-  # filter(recruited != "I am the researcher") |>
+all_data_clean |> 
   select(participant_id, version, cpLoc, sigma, theta, correct, response_no, obs_plot_location) |> 
   # complete(version, cpLoc, sigma, theta) |>
   mutate(correct = factor(correct)) |> 
@@ -184,10 +170,7 @@ all_data |>
 ```
 
 ```{r}
-all_data |> 
-  # filter(recruited != "",
-  #        !is.na(lineup_order)) |> 
-  # filter(recruited != "I am the researcher") |>
+all_data_clean |>
   select(participant_id, version, cpLoc, sigma, theta, correct, response_no, obs_plot_location) |> 
   group_by(cpLoc, sigma, theta) |> 
   summarize(prop_correct = sum(correct)/n()) |> 
@@ -208,6 +191,21 @@ all_data |>
 ```
 
 ## Binomial GLMM
+
+```{r}
+library(lme4)
+library(emmeans)
+
+mod <- glmer(correct ~ theta*sigma*cpLoc + (1 | participant_id) + (1 | lineup_id),
+             family = binomial(),
+             data = all_data_clean
+             )
+
+anova(mod)
+
+estimates <- emmeans(mod, ~ theta:sigma:cpLoc, type = "response")
+  
+```
 
 ## Results
 
