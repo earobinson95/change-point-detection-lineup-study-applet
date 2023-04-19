@@ -198,13 +198,39 @@ all_data_clean |>
 library(lme4)
 library(emmeans)
 
-mod <- glmer(correct ~ theta + sigma + cpLoc + theta:sigma + theta:cpLoc + (1 | participant_id),
-             family = binomial(),
-             control = glmerControl(optimizer = "bobyqa",
-                                    optCtrl   = list(maxfun = 20000)
-             ),
-             data = all_data_clean
-             )
+# mod <- glmer(correct ~ theta + sigma + cpLoc + theta:sigma + theta:cpLoc + (1 | participant_id),
+#              family = binomial(),
+#              control = glmerControl(optimizer = "bobyqa",
+#                                     optCtrl   = list(maxfun = 20000)
+#              ),
+#              data = all_data_clean
+#              )
+# 
+# mod <- glmer(correct ~ (1 |theta) + (1 | sigma) + (1|cpLoc) + (1|theta:sigma) + (1|theta:cpLoc)  + (1 | participant_id),
+#              family = binomial(),
+#              data = all_data_clean
+#              )
+# 
+# summary(mod)
+# mod |> profile() |> confint()
+# 
+# mod_glm <- glm(correct ~ theta*sigma*cpLoc + participant_id,
+#              family = binomial(),
+#              data = all_data_clean
+#              )
+# 
+# mod <- glm(correct ~ theta*sigma*cpLoc + lineup_id,
+#              family = binomial(),
+#              data = all_data_clean
+#              )
+# 
+# mod <- glm(correct ~ theta*sigma*cpLoc + participant_id + lineup_id,
+#              family = binomial(),
+#              data = all_data_clean
+#              )
+# 
+# aov(mod_glm) |> 
+#   summary()
 
 mod <- glmer(correct ~ theta*sigma*cpLoc + (1 | participant_id),
              family = binomial(),
@@ -215,39 +241,11 @@ mod <- glmer(correct ~ theta*sigma*cpLoc + (1 | participant_id),
              )
 
 summary(mod)
-
-mod <- glmer(correct ~ (1 |theta) + (1 | sigma) + (1|cpLoc) + (1|theta:sigma) + (1|theta:cpLoc)  + (1 | participant_id),
-             family = binomial(),
-             data = all_data_clean
-             )
-
-summary(mod)
-mod |> profile() |> confint()
-
-mod_glm <- glm(correct ~ theta*sigma*cpLoc + participant_id,
-             family = binomial(),
-             data = all_data_clean
-             )
-
-mod <- glm(correct ~ theta*sigma*cpLoc + lineup_id,
-             family = binomial(),
-             data = all_data_clean
-             )
-
-mod <- glm(correct ~ theta*sigma*cpLoc + participant_id + lineup_id,
-             family = binomial(),
-             data = all_data_clean
-             )
-
-aov(mod_glm) |> 
-  summary()
-
-
 car::Anova(mod)
 anova(mod)
+
 estimates <- emmeans(mod, ~ theta:sigma:cpLoc, type = "response")
-estimates 
-  
+estimates
 ```
 
 ## Results
