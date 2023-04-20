@@ -3,6 +3,7 @@ library(DBI)
 library(tidyverse)
 library(lubridate)
 library(digest)
+library(here)
 
 # Sent out to GG after Study Start time of 1678393962
 
@@ -102,8 +103,11 @@ dim(all_data_orig)
 
 all_data_clean <- all_data_orig|>
   filter(!prolific_id %in% c("9999", "13emily")) |>
-  mutate(correct = ifelse(obs_plot_location == response_no, 1, 0),
-         across(c(version, cpLoc, theta, sigma), as.factor)) |> 
+  mutate(direction = ifelse(theta < 0, "Negative", "Positive"),
+         theta_abs = abs(theta),
+         correct = ifelse(obs_plot_location == response_no, 1, 0),
+         across(c(version, cpLoc, theta, direction, theta_abs, sigma), as.factor)
+         ) |> 
   # filter(!is.na(cpLoc), !is.na(sigma), !is.na(theta)) |> 
   group_by(participant_id) |> 
   mutate(nlineups = n()) |> 
@@ -115,14 +119,14 @@ all_data_clean <- all_data_orig|>
   filter(nlineupstime == 12) |>
   select(participant_id, nlineups, nlineupstime, study_start_time, age, gender, academic_study, health_related, stem_related,
          recruited, bib_id, lineup_order, lineup_start_time, lineup_end_time, lineup_id,
-         dataset_id, param_id, mu, theta, cpLoc, sigma, gam, version, obs_plot_location, response_no, correct,
+         dataset_id, param_id, mu, theta, theta_abs, direction, cpLoc, sigma, gam, version, obs_plot_location, response_no, correct,
          Tstat, df, pvalue, conf_level, choice_reason, description)
 
 dim(all_data_clean)
 nrow(all_data_clean) / 12
 unique(all_data_clean$participant_id) |> length()
 
-write_csv(all_data_clean, file = "analysis/data/lineup_clean.csv")  
+write_csv(all_data_clean, file = here("data", "lineup_clean.csv"))
 
 ### Test the idb ---------------------------------------------------------------
 # n = 210

@@ -27,7 +27,9 @@ library(DT)
 #| output: false
 # source(here("analysis", "prolific-data-cleaning.R"))
 all_data_clean <- read_csv(here("data", "lineup_clean.csv")) |> 
-  mutate(across(lineup_id:version, ~ as.factor(.x)))
+  mutate(across(lineup_id:version, ~ as.factor(.x)),
+         direction = fct_relevel(direction, c("Positive", "Negative"))
+         )
 ```
 
 <!-- ### Feedback data -->
@@ -206,11 +208,15 @@ all_data_clean |>
 | Source of Variation                               | Degrees of Freedom (2520 - 1) = 2519 |
 |---------------------------------------------------|--------------------------------------|
 | participant_id                                    | (210 - 1) = 209                      |
-| theta                                             | (6 - 1) = 5                          |
+| theta                                             | (3 - 1) = 5                          |
+| direction                                         | (2 - 1) = 1                          |
 | cpLoc                                             | (3 - 1) = 2                          |
 | sigma                                             | (2 - 1) = 1                          |
-| theta x cpLoc                                     | (6 - 1)(3 - 1) = 10                  |
-| theta x sigma                                     | (6 - 1)(2 - 1) = 5                   |
+| theta x direction                                 | (3 - 1)(2 - 1) = 2                   |
+| theta x cpLoc                                     | (3 - 1)(3 - 1) = 4                   |
+| theta x sigma                                     | (3 - 1)(2 - 1) = 2                   |
+| direction x cpLoc                                 | (3 - 1)(3 - 1) = 4                   |
+| directionigma                                     | (3 - 1)(2 - 1) = 2                   |
 | cpLoc x sigma                                     | (3 - 1)(2 - 1) = 2                   |
 | theta x cpLoc x sigma                             | (6 - 1)(3 - 1)(2 - 1) = 10           |
 | participant_id x theta x cpLoc x sigma - residual | ... = 2275 ???                       |
@@ -220,46 +226,16 @@ all_data_clean |>
 #| eval: true
 #| warning: false
 library(lme4)
-# library(afex)
-# library(jtools)
 library(emmeans)
 
-# mod <- glmer(correct ~ theta + sigma + cpLoc + theta:sigma + theta:cpLoc + (1 | participant_id),
-#              family = binomial(),
-#              control = glmerControl(optimizer = "bobyqa",
-#                                     optCtrl   = list(maxfun = 20000)
-#              ),
-#              data = all_data_clean
-#              )
-# 
-# mod <- glmer(correct ~ (1 |theta) + (1 | sigma) + (1|cpLoc) + (1|theta:sigma) + (1|theta:cpLoc)  + (1 | participant_id),
-#              family = binomial(),
-#              data = all_data_clean
-#              )
-# 
-# summary(mod)
-# mod |> profile() |> confint()
-# 
-# 
-# mod <- glm(correct ~ theta*sigma*cpLoc + lineup_id,
-#              family = binomial(),
-#              data = all_data_clean
-#              )
-# 
-# mod <- glm(correct ~ theta*sigma*cpLoc + participant_id + lineup_id,
-#              family = binomial(),
-#              data = all_data_clean
-#              )
-# 
-
-# mod_glm <- glm(correct ~ theta*sigma*cpLoc + participant_id,
+# mod_glm <- glm(correct ~ direction*theta*sigma*cpLoc + participant_id,
 #              family = binomial(),
 #              data = all_data_clean
 #              )
 # aov(mod_glm) |>
 #   summary()
 
-mod <- glmer(correct ~ theta*sigma*cpLoc + (1 | participant_id),
+mod <- glmer(correct ~ direction*theta_abs*sigma*cpLoc + (1 | participant_id),
              family = binomial(),
              control = glmerControl(optimizer = "bobyqa",
                                     optCtrl   = list(maxfun = 20000)
@@ -267,7 +243,7 @@ mod <- glmer(correct ~ theta*sigma*cpLoc + (1 | participant_id),
              data = all_data_clean
              )
 
-summary(mod)
+# summary(mod)
 car::Anova(mod)
 anova(mod)
 # summ(mod)
@@ -276,7 +252,7 @@ anova(mod)
 ## Results
 
 ```{r}
-estimates <- emmeans(mod, ~ theta:sigma:cpLoc, type = "response", infer = c(T,T))
+estimates <- emmeans(mod, ~ direction:theta_abs:sigma:cpLoc, type = "response", infer = c(T,T))
 
 estimates |> 
   as_tibble() |> 
@@ -284,10 +260,10 @@ estimates |>
                            cpLoc == "0.5" ~ 0.50,
                            cpLoc == "0.666666667" ~ 0.66)
          ) |> 
-  knitr::kable(digits = 2)
+  DT::datatable()
 
 
-emmeans(mod, ~ cpLoc | theta:sigma, type = "response") |> 
+emmeans(mod, ~ cpLoc | theta_abs:sigma, type = "response") |> 
   pairs(infer = c(T,T)) |> 
   as_tibble() |> 
   mutate(contrast = case_when(contrast == "cpLoc0.333333333 / cpLoc0.5" ~ "early/mid",
@@ -332,15 +308,15 @@ emmeans(mod, ~ cpLoc | theta:sigma, type = "response") |>
 ```
 
 ```{r}
-emmeans(mod, ~ theta | cpLoc:sigma, type = "response") |> 
+emmeans(mod, ~ direction | theta_abs:cpLoc:sigma, type = "response") |> 
   pairs(infer = c(T,T)) |> 
-  as_tibble() |> 
-  # mutate(contrast = case_when(contrast == "cpLoc0.333333333 / cpLoc0.5" ~ "early/mid",
-  #                             contrast == "cpLoc0.333333333 / cpLoc0.666666667" ~ "early/late",
-  #                             contrast == "cpLoc0.5 / cpLoc0.666666667" ~ "mid/late")
-  #        ) |> 
-  filter(contrast %in% c("(theta-1) / theta1", "(theta-5) / theta5", "(theta-3) / theta3")) |> 
-  ggplot(aes(y = contrast, 
+  as_tibble() |>
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667")
+         ) |> 
+  ggplot(aes(y = theta_abs, 
              color = cpLoc,
              shape = cpLoc
              )
@@ -366,10 +342,10 @@ emmeans(mod, ~ theta | cpLoc:sigma, type = "response") |>
   scale_color_brewer(palette = "Dark2") +
   labs(y = "",
        x = "",
-       subtitle = "Mean Shift",
-       title = "Odds Ratio of Correctly Identifying the Target Panel \nbetween the Change Point Locations",
-       color = "",
-       shape = "") +
+       subtitle = "Mean Shift Magnitude",
+       title = "Odds Ratio of Correctly Identifying the Target Panel \nbetween a Positive and Negative Shift",
+       color = "Change Point \nLocation",
+       shape = "Change Point \nLocation") +
   guides(shape = guide_legend(reverse = TRUE),
          color = guide_legend(reverse = TRUE)) +
   scale_x_log10(labels = scales::comma)
