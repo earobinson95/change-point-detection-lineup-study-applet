@@ -294,6 +294,8 @@ emmeans(mod, ~ cpLoc | theta:sigma, type = "response") |>
                               contrast == "cpLoc0.333333333 / cpLoc0.666666667" ~ "early/late",
                               contrast == "cpLoc0.5 / cpLoc0.666666667" ~ "mid/late")
          ) |> 
+  filter(sigma == 1,
+         theta %in% c(-1,1)) |> 
   ggplot(aes(y = theta, 
              color = contrast,
              shape = contrast
@@ -313,6 +315,50 @@ emmeans(mod, ~ cpLoc | theta:sigma, type = "response") |>
              linetype = "dashed"
              ) +
   facet_grid(sigma ~ ., 
+             labeller = label_both
+             ) +
+  theme_bw() +
+  theme(aspect.ratio = 0.6) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(y = "",
+       x = "",
+       subtitle = "Mean Shift",
+       title = "Odds Ratio of Correctly Identifying the Target Panel \nbetween the Change Point Locations",
+       color = "",
+       shape = "") +
+  guides(shape = guide_legend(reverse = TRUE),
+         color = guide_legend(reverse = TRUE)) +
+  scale_x_log10(labels = scales::comma)
+```
+
+```{r}
+emmeans(mod, ~ theta | cpLoc:sigma, type = "response") |> 
+  pairs(infer = c(T,T)) |> 
+  as_tibble() |> 
+  # mutate(contrast = case_when(contrast == "cpLoc0.333333333 / cpLoc0.5" ~ "early/mid",
+  #                             contrast == "cpLoc0.333333333 / cpLoc0.666666667" ~ "early/late",
+  #                             contrast == "cpLoc0.5 / cpLoc0.666666667" ~ "mid/late")
+  #        ) |> 
+  filter(contrast %in% c("(theta-1) / theta1", "(theta-5) / theta5", "(theta-3) / theta3")) |> 
+  ggplot(aes(y = contrast, 
+             color = cpLoc,
+             shape = cpLoc
+             )
+         ) +
+  geom_vline(xintercept = 1, 
+             color = "darkgray", 
+             linetype = "dashed"
+             ) +
+  geom_point(aes(x = odds.ratio), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  facet_grid(sigma ~ .,
              labeller = label_both
              ) +
   theme_bw() +
