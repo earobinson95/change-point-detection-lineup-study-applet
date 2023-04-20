@@ -26,7 +26,8 @@ library(DT)
 ```{r}
 #| output: false
 # source(here("analysis", "prolific-data-cleaning.R"))
-all_data_clean <- read_csv(here("data", "lineup_clean.csv"))
+all_data_clean <- read_csv(here("data", "lineup_clean.csv")) |> 
+  mutate(across(lineup_id:version, ~ as.factor(.x)))
 ```
 
 <!-- ### Feedback data -->
@@ -48,14 +49,23 @@ all_data_clean <- read_csv(here("data", "lineup_clean.csv"))
 Look at number of plots per participant
 
 <!-- # ```{r} -->
+
 <!-- # all_data |>  -->
+
 <!-- #   # filter(!is.na(lineup_order)) |>  -->
+
 <!-- #   # filter(recruited != "I am the researcher") |> -->
+
 <!-- #   # count(prolific_id, participant_id) |> -->
+
 <!-- #   # count(participant_id) |> -->
+
 <!-- #   count(prolific_id) |> -->
+
 <!-- #   # arrange(-n) |>  -->
+
 <!-- #   DT::datatable() -->
+
 <!-- # ``` -->
 
 ```{r}
@@ -193,9 +203,25 @@ all_data_clean |>
 
 ## Binomial GLMM
 
+| Source of Variation                               | Degrees of Freedom (2520 - 1) = 2519 |
+|---------------------------------------------------|--------------------------------------|
+| participant_id                                    | (210 - 1) = 209                      |
+| theta                                             | (6 - 1) = 5                          |
+| cpLoc                                             | (3 - 1) = 2                          |
+| sigma                                             | (2 - 1) = 1                          |
+| theta x cpLoc                                     | (6 - 1)(3 - 1) = 10                  |
+| theta x sigma                                     | (6 - 1)(2 - 1) = 5                   |
+| cpLoc x sigma                                     | (3 - 1)(2 - 1) = 2                   |
+| theta x cpLoc x sigma                             | (6 - 1)(3 - 1)(2 - 1) = 10           |
+| participant_id x theta x cpLoc x sigma - residual | ... = 2275 ???                       |
+|                                                   |                                      |
+
 ```{r}
-#| eval: false
+#| eval: true
+#| warning: false
 library(lme4)
+# library(afex)
+# library(jtools)
 library(emmeans)
 
 # mod <- glmer(correct ~ theta + sigma + cpLoc + theta:sigma + theta:cpLoc + (1 | participant_id),
@@ -214,10 +240,6 @@ library(emmeans)
 # summary(mod)
 # mod |> profile() |> confint()
 # 
-# mod_glm <- glm(correct ~ theta*sigma*cpLoc + participant_id,
-#              family = binomial(),
-#              data = all_data_clean
-#              )
 # 
 # mod <- glm(correct ~ theta*sigma*cpLoc + lineup_id,
 #              family = binomial(),
@@ -229,7 +251,12 @@ library(emmeans)
 #              data = all_data_clean
 #              )
 # 
-# aov(mod_glm) |> 
+
+# mod_glm <- glm(correct ~ theta*sigma*cpLoc + participant_id,
+#              family = binomial(),
+#              data = all_data_clean
+#              )
+# aov(mod_glm) |>
 #   summary()
 
 mod <- glmer(correct ~ theta*sigma*cpLoc + (1 | participant_id),
@@ -243,10 +270,61 @@ mod <- glmer(correct ~ theta*sigma*cpLoc + (1 | participant_id),
 summary(mod)
 car::Anova(mod)
 anova(mod)
-
-estimates <- emmeans(mod, ~ theta:sigma:cpLoc, type = "response")
-estimates
+# summ(mod)
 ```
 
 ## Results
 
+```{r}
+estimates <- emmeans(mod, ~ theta:sigma:cpLoc, type = "response", infer = c(T,T))
+
+estimates |> 
+  as_tibble() |> 
+  mutate(cpLoc = case_when(cpLoc == "0.333333333" ~ 0.33,
+                           cpLoc == "0.5" ~ 0.50,
+                           cpLoc == "0.666666667" ~ 0.66)
+         ) |> 
+  knitr::kable(digits = 2)
+
+
+emmeans(mod, ~ cpLoc | theta:sigma, type = "response") |> 
+  pairs(infer = c(T,T)) |> 
+  as_tibble() |> 
+  mutate(contrast = case_when(contrast == "cpLoc0.333333333 / cpLoc0.5" ~ "early/mid",
+                              contrast == "cpLoc0.333333333 / cpLoc0.666666667" ~ "early/late",
+                              contrast == "cpLoc0.5 / cpLoc0.666666667" ~ "mid/late")
+         ) |> 
+  ggplot(aes(y = theta, 
+             color = contrast,
+             shape = contrast
+             )
+         ) +
+  geom_point(aes(x = odds.ratio), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  geom_vline(xintercept = 1, 
+             color = "darkgray", 
+             linetype = "dashed"
+             ) +
+  facet_grid(sigma ~ ., 
+             labeller = label_both
+             ) +
+  theme_bw() +
+  theme(aspect.ratio = 0.6) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(y = "",
+       x = "",
+       subtitle = "Mean Shift",
+       title = "Odds Ratio of Correctly Identifying the Target Panel \nbetween the Change Point Locations",
+       color = "",
+       shape = "") +
+  guides(shape = guide_legend(reverse = TRUE),
+         color = guide_legend(reverse = TRUE)) +
+  scale_x_log10(labels = scales::comma)
+```
