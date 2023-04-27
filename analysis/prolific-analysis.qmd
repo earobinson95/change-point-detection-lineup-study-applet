@@ -246,10 +246,10 @@ mod <- glmer(correct ~ direction*theta_abs*sigma*cpLoc + (1 | participant_id),
 # summary(mod)
 car::Anova(mod)
 anova(mod)
-# summ(mod)
+# sum(mod)
 ```
 
-## Results
+# RESULTS 1: PROBABILITY OF DETECTION
 
 ```{r}
 estimates <- emmeans(mod, ~ direction:theta_abs:sigma:cpLoc, type = "response", infer = c(T,T))
@@ -261,23 +261,31 @@ estimates |>
                            cpLoc == "0.666666667" ~ 0.66)
          ) |> 
   DT::datatable()
+```
 
+### 4-way Probs -- Change Point and Direction for each theta abs and sigma
 
-emmeans(mod, ~ cpLoc | theta_abs:sigma, type = "response") |> 
-  pairs(infer = c(T,T)) |> 
-  as_tibble() |> 
-  mutate(contrast = case_when(contrast == "cpLoc0.333333333 / cpLoc0.5" ~ "early/mid",
-                              contrast == "cpLoc0.333333333 / cpLoc0.666666667" ~ "early/late",
-                              contrast == "cpLoc0.5 / cpLoc0.666666667" ~ "mid/late")
+```{r}
+emmeans(mod, ~ sigma:theta_abs:direction:cpLoc, type = "response", infer = c(T,T)) |>
+  as_tibble() |>
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667"
+                            ),
+         theta_abs = fct_relevel(theta_abs, 
+                                 c("5", "3", "1")
+                                 ),
+         direction = fct_relevel(direction, 
+                                 c("Negative", "Positive")
+                                 )
          ) |> 
-  filter(sigma == 1,
-         theta %in% c(-1,1)) |> 
-  ggplot(aes(y = theta, 
-             color = contrast,
-             shape = contrast
+  ggplot(aes(y = sigma, 
+             color = direction,
+             shape = direction
              )
          ) +
-  geom_point(aes(x = odds.ratio), 
+  geom_point(aes(x = prob), 
              position = position_dodge(0.6)
              ) +
   geom_errorbar(aes(xmin = asymp.LCL, 
@@ -286,11 +294,7 @@ emmeans(mod, ~ cpLoc | theta_abs:sigma, type = "response") |>
                 width = 0, 
                 position = position_dodge(0.6)
                 ) +
-  geom_vline(xintercept = 1, 
-             color = "darkgray", 
-             linetype = "dashed"
-             ) +
-  facet_grid(sigma ~ ., 
+  facet_grid(theta_abs ~ cpLoc,
              labeller = label_both
              ) +
   theme_bw() +
@@ -298,14 +302,17 @@ emmeans(mod, ~ cpLoc | theta_abs:sigma, type = "response") |>
   scale_color_brewer(palette = "Dark2") +
   labs(y = "",
        x = "",
-       subtitle = "Mean Shift",
-       title = "Odds Ratio of Correctly Identifying the Target Panel \nbetween the Change Point Locations",
-       color = "",
-       shape = "") +
+       subtitle = "Noise",
+       title = "Probability of Correctly Identifying the Target Panel",
+       color = "Direction",
+       shape = "Direction") +
   guides(shape = guide_legend(reverse = TRUE),
-         color = guide_legend(reverse = TRUE)) +
-  scale_x_log10(labels = scales::comma)
+         color = guide_legend(reverse = TRUE))
 ```
+
+# RESULT 2: COMPARE ODDS POSITIVE / ODDS NEGATIVE
+
+### 4-way -- Change Point and Direction for each theta abs and sigma
 
 ```{r}
 emmeans(mod, ~ direction | theta_abs:cpLoc:sigma, type = "response") |> 
@@ -349,4 +356,387 @@ emmeans(mod, ~ direction | theta_abs:cpLoc:sigma, type = "response") |>
   guides(shape = guide_legend(reverse = TRUE),
          color = guide_legend(reverse = TRUE)) +
   scale_x_log10(labels = scales::comma)
+```
+
+Same as above, but switched plotting aesthetics
+
+```{r}
+emmeans(mod, ~ direction | theta_abs:cpLoc:sigma, type = "response") |> 
+  pairs(infer = c(T,T)) |> 
+  as_tibble() |>
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667")
+         ) |> 
+  ggplot(aes(y = sigma, 
+             color = cpLoc,
+             shape = cpLoc
+             )
+         ) +
+  geom_vline(xintercept = 1, 
+             color = "darkgray", 
+             linetype = "dashed"
+             ) +
+  geom_point(aes(x = odds.ratio), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  facet_grid(theta_abs ~ .,
+             labeller = label_both
+             ) +
+  theme_bw() +
+  theme(aspect.ratio = 0.6) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(y = "",
+       x = "",
+       subtitle = "Sigma",
+       title = "Odds Ratio of Correctly Identifying the Target Panel \nbetween a Positive and Negative Shift",
+       color = "Change Point \nLocation",
+       shape = "Change Point \nLocation") +
+  guides(shape = guide_legend(reverse = TRUE),
+         color = guide_legend(reverse = TRUE)) +
+  scale_x_log10(labels = scales::comma)
+```
+
+### 3-way -- Change Point and Direction for each theta abs (averaged over sigma)
+
+```{r}
+emmeans(mod, ~ direction | theta_abs*cpLoc, type = "response") |> 
+  pairs(infer = c(T,T)) |> 
+  as_tibble() |>
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667")
+         ) |> 
+  ggplot(aes(y = theta_abs, 
+             color = cpLoc,
+             shape = cpLoc
+             )
+         ) +
+  geom_vline(xintercept = 1, 
+             color = "darkgray", 
+             linetype = "dashed"
+             ) +
+  geom_point(aes(x = odds.ratio), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  # facet_grid(sigma ~ .,
+  #            labeller = label_both
+  #            ) +
+  theme_bw() +
+  theme(aspect.ratio = 0.6) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(y = "",
+       x = "",
+       subtitle = "Mean Shift Magnitude",
+       title = "Odds Ratio of Correctly Identifying the Target Panel \nbetween a Positive and Negative Shift \n(Averaged over Noise)",
+       color = "Change Point \nLocation",
+       shape = "Change Point \nLocation") +
+  guides(shape = guide_legend(reverse = TRUE),
+         color = guide_legend(reverse = TRUE)) +
+  scale_x_log10(labels = scales::comma)
+```
+
+
+### 3-way -- Change Point and Direction for each sigma (averaged over theta abs)
+
+```{r}
+emmeans(mod, ~ direction | sigma*cpLoc, type = "response") |> 
+  pairs(infer = c(T,T)) |> 
+  as_tibble() |>
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667")
+         ) |> 
+  ggplot(aes(y = sigma, 
+             color = cpLoc,
+             shape = cpLoc
+             )
+         ) +
+  geom_vline(xintercept = 1, 
+             color = "darkgray", 
+             linetype = "dashed"
+             ) +
+  geom_point(aes(x = odds.ratio), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  # facet_grid(sigma ~ .,
+  #            labeller = label_both
+  #            ) +
+  theme_bw() +
+  theme(aspect.ratio = 0.6) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(y = "",
+       x = "",
+       subtitle = "Noise",
+       title = "Odds Ratio of Correctly Identifying the Target Panel \nbetween a Positive and Negative Shift \n(Averaged over Shift Magnitude)",
+       color = "Change Point \nLocation",
+       shape = "Change Point \nLocation") +
+  guides(shape = guide_legend(reverse = TRUE),
+         color = guide_legend(reverse = TRUE)) +
+  scale_x_log10(labels = scales::comma)
+```
+
+### 2-way -- Change Point and Direction (averaged over sigma and theta abs)
+
+```{r}
+emmeans(mod, ~ direction | cpLoc, type = "response") |> 
+  pairs(infer = c(T,T)) |> 
+  as_tibble() |>
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667")
+         ) |> 
+  ggplot(aes(y = cpLoc, 
+             color = cpLoc,
+             shape = cpLoc
+             )
+         ) +
+  geom_vline(xintercept = 1, 
+             color = "darkgray", 
+             linetype = "dashed"
+             ) +
+  geom_point(aes(x = odds.ratio), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  # facet_grid(sigma ~ .,
+  #            labeller = label_both
+  #            ) +
+  theme_bw() +
+  theme(aspect.ratio = 0.6) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(y = "",
+       x = "",
+       subtitle = "Mean Shift Magnitude",
+       title = "Odds Ratio of Correctly Identifying the Target Panel \nbetween a Positive and Negative Shift",
+       color = "Change Point \nLocation",
+       shape = "Change Point \nLocation") +
+  guides(shape = guide_legend(reverse = TRUE),
+         color = guide_legend(reverse = TRUE)) +
+  scale_x_log10(labels = scales::comma)
+```
+
+# RESULTS 3: COMPARE ODDS LOW NOISE / ODDS HIGH NOISE
+
+### 3-way Probs -- Change Point and Direction for each theta abs and sigma
+
+```{r}
+emmeans(mod, ~ sigma:theta_abs:cpLoc, type = "response", infer = c(T,T)) |>
+  as_tibble() |>
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667")
+         ) |> 
+  ggplot(aes(y = theta_abs, 
+             color = cpLoc,
+             shape = cpLoc
+             )
+         ) +
+  geom_point(aes(x = prob), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  facet_grid(sigma ~ .,
+             labeller = label_both
+             ) +
+  theme_bw() +
+  theme(aspect.ratio = 0.6) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(y = "",
+       x = "",
+       subtitle = "Mean Shift Magnitude",
+       title = "Probability of Correctly Identifying the Target Panel \n(Averaged over Direction)",
+       color = "Change Point \nLocation",
+       shape = "Change Point \nLocation") +
+  guides(shape = guide_legend(reverse = TRUE),
+         color = guide_legend(reverse = TRUE))
+```
+
+### 3-way Odds -- Change Point and Direction for each theta abs and sigma (averaged over direction)
+
+```{r}
+emmeans(mod, ~ sigma | theta_abs:cpLoc, type = "response") |> 
+  pairs(infer = c(T,T)) |> 
+  as_tibble() |>
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667")
+         ) |> 
+  ggplot(aes(y = theta_abs, 
+             color = cpLoc,
+             shape = cpLoc
+             )
+         ) +
+  geom_vline(xintercept = 1, 
+             color = "darkgray", 
+             linetype = "dashed"
+             ) +
+  geom_point(aes(x = odds.ratio), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  # facet_grid(theta_abs ~ .,
+  #            labeller = label_both
+  #            ) +
+  theme_bw() +
+  theme(aspect.ratio = 0.6) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(y = "",
+       x = "",
+       subtitle = "Mean Shift Magnitude",
+       title = "Odds Ratio of Correctly Identifying the Target Panel \nbetween Low and High Noise \n(Averaged over Direction)",
+       color = "Change Point \nLocation",
+       shape = "Change Point \nLocation") +
+  guides(shape = guide_legend(reverse = TRUE),
+         color = guide_legend(reverse = TRUE)) +
+  scale_x_log10(labels = scales::comma)
+```
+
+# RESULT 4: MAGNITUDE AND DIRECTION (FOR EACH NOISE LEVEL)
+
+### Probability of Magnitude and Direction for each Sigma (averaged over and cpLoc)
+
+```{r}
+emmeans(mod, ~ sigma:theta_abs:direction, type = "response", infer = c(T,T)) |>
+  as_tibble() |>
+  ggplot(aes(y = sigma, 
+             color = direction,
+             shape = direction
+             )
+         ) +
+  geom_point(aes(x = prob), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  facet_grid(theta_abs ~.,
+             labeller = label_both
+             ) +
+  theme_bw() +
+  theme(aspect.ratio = 0.6) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(y = "",
+       x = "",
+       subtitle = "Noise",
+       title = "Probability of Correctly Identifying the Target Panel \n(averaged over Change Point Location)",
+       color = "Direction",
+       shape = "Direction") +
+  guides(shape = guide_legend(reverse = TRUE),
+         color = guide_legend(reverse = TRUE))
+```
+
+### Odds of Direction for Noise Level and Magnitude (averaged over and cpLoc)
+
+```{r}
+emmeans(mod, ~ direction | sigma:theta_abs, type = "response") |>
+  pairs(infer = c(T,T)) |> 
+  as_tibble() |>
+  ggplot(aes(y = theta_abs, 
+             color = sigma,
+             shape = sigma
+             )
+         ) +
+  geom_point(aes(x = odds.ratio), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  geom_vline(xintercept = 1, 
+             color = "darkgray", 
+             linetype = "dashed"
+             ) +
+  theme_bw() +
+  theme(aspect.ratio = 0.6) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(y = "",
+       x = "",
+       subtitle = "Mean Shift Magnitude",
+       title = "Odds of Correctly Identifying the Target Panel \nbetween a Positive and Negative Shift \n(Averaged over Location)",
+       color = "Noise",
+       shape = "Noise") +
+  guides(shape = guide_legend(reverse = TRUE),
+         color = guide_legend(reverse = TRUE)) +
+  scale_x_log10(labels = scales::comma)
+```
+
+# EXPLORING
+
+### Explore reasoning for theta = 1 and sigma = 1
+
+```{r}
+all_data_clean |> 
+  filter(theta == -1,
+         sigma == 1,
+         correct == 1) |> 
+  count(version, choice_reason) |>
+  pivot_wider(id_cols = choice_reason,
+              names_from = version,
+              values_from = n)
+```
+
+
+```{r}
+all_data_clean |> 
+  filter(theta == 3,
+         sigma == 2,
+         correct == 1) |> 
+  count(version, choice_reason) |>
+  pivot_wider(id_cols = choice_reason,
+              names_from = version,
+              values_from = n)
+
+
+all_data_clean |> 
+  filter(theta == -3,
+         sigma == 2,
+         correct == 1) |> 
+  count(choice_reason) |>
+  arrange(-n)
 ```
