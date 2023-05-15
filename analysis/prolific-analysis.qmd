@@ -213,8 +213,13 @@ all_data |>
 ```{r}
 
 all_data |> 
-  count(prolific_id) |> 
-  filter(between(n,12,24))
+  filter(!is.na(lineup_order)) |>
+  filter(recruited != "I am the researcher") |>
+  # count(prolific_id, participant_id) |>
+  # count(participant_id) |>
+  count(prolific_id) |>
+  arrange(-n) |>
+  DT::datatable(rownames = F)
 ```
 ## Results
 
