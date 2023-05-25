@@ -19,6 +19,8 @@ library(here)
 library(tidyverse)
 library(ggtext)
 library(DT)
+library(yardstick)
+library(caret)
 ```
 
 ## Clean Data (or load cleaned data)
@@ -744,4 +746,92 @@ all_data_clean |>
          correct == 1) |> 
   count(choice_reason) |>
   arrange(-n)
+```
+
+
+## Sensitivity Analysis against the t-test
+
+```{r}
+
+all_data_clean |> 
+  mutate(ttest_decision = as.factor(as.numeric(pvalue<0.05)),
+         correct=as.factor(correct)) |> 
+  select(theta_abs,direction,cpLoc, sigma, correct,ttest_decision) |> 
+  group_by(theta_abs,direction,cpLoc,sigma) |> 
+  arrange(theta_abs,direction,cpLoc,sigma) |> 
+  rowwise() |> 
+  mutate(TP=ifelse(ttest_decision==1 & correct==1,1,0),
+         FP = ifelse(ttest_decision==0 & correct==1,1,0),
+         TN= ifelse(ttest_decision==0 & correct==0,1,0),
+         FN=ifelse(ttest_decision==1 & correct==0,1,0)) |> 
+  ungroup() |> 
+  group_by(theta_abs,direction,cpLoc,sigma) |> 
+  summarize(TPtotal=sum(TP),
+            FPtotal=sum(FP),
+            TNtotal=sum(TN),
+            FNtotal=sum(FN)) |> 
+  mutate(sensitivity=ifelse(TPtotal+FNtotal!=0,TPtotal/(TPtotal+FNtotal),0),
+        specificity=ifelse(TNtotal+FPtotal!=0,TNtotal/(TNtotal+FPtotal),0)
+            ) ->sensspec
+# write.csv(sensspec,file = "Sensitivity-Specificity Analysis.csv")  
+
+sensspec |> 
+      mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667"),
+             sigma = fct_recode(sigma,
+                                "Low Variance"="1",
+                                "High Variance"="2"),
+             theta_abs = fct_recode(theta_abs,
+                                    "Low" = "1",
+                                    "Medium" = "3",
+                                    "High" = "5"),
+             direction = fct_recode(direction,
+                                    "(+)"="Positive",
+                                    "(-)"="Negative")
+         ) |> 
+  ggplot(aes(y=sensitivity,x=theta_abs,color=sigma,shape=sigma)) + 
+  geom_point(size=3)+
+  theme_bw() + 
+  scale_color_brewer(palette = "Dark2") +
+  labs(y = "Sensitivity",
+       x = "Shift Magnitude",
+       color = "Noise",
+       shape = "Noise") +
+  facet_grid(direction ~ cpLoc,
+             labeller = label_both
+             )
+
+sensspec |> 
+      mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667"),
+             sigma = fct_recode(sigma,
+                                "Low Variance"="1",
+                                "High Variance"="2"),
+             theta_abs = fct_recode(theta_abs,
+                                    "Low" = "1",
+                                    "Medium" = "3",
+                                    "High" = "5"),
+             direction = fct_recode(direction,
+                                    "(+)"="Positive",
+                                    "(-)"="Negative")
+         ) |> 
+  ggplot(aes(y=specificity,x=theta_abs,color=sigma,shape=sigma)) + 
+  geom_point(size=3)+
+  theme_bw() + 
+  # theme(aspect.ratio = 0.6) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(y = "Specificity",
+       x = "Shift Magnitude",
+       color = "Noise",
+       shape = "Noise") +
+  facet_grid(direction ~ cpLoc,
+             labeller = label_both
+             )
+  
+  
+
 ```
