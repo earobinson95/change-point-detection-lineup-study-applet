@@ -368,14 +368,14 @@ emmeans(mod, ~ direction | theta_abs:cpLoc:sigma, type = "response") |>
 
 ##### Direction
 ```{r}
-emmeans(mod, ~ direction | theta_abs:cpLoc:sigma, type = "response") |> 
+emmeans(mod, ~ direction | cpLoc:sigma:theta_abs, type = "response") |> 
   pairs(infer = c(T,T)) |> 
   as.data.frame()
 ```
 
 ##### Variance
 ```{r}
-emmeans(mod, ~ sigma | theta_abs:direction:cpLoc, type = "response") |> 
+emmeans(mod, ~ sigma | direction:cpLoc:theta_abs, type = "response") |> 
   pairs(infer = c(T,T)) |> 
   as.data.frame()
 ```
@@ -390,7 +390,7 @@ emmeans(mod, ~ theta_abs | sigma:direction:cpLoc, type = "response") |>
 ##### Change Point Location
 
 ```{r}
-emmeans(mod, ~ cpLoc | sigma:theta_abs:direction, type = "response") |> 
+emmeans(mod, ~ cpLoc | sigma:direction:theta_abs, type = "response") |> 
   pairs(infer = c(T,T)) |> 
   as.data.frame()
 ```
