@@ -362,6 +362,38 @@ emmeans(mod, ~ direction | theta_abs:cpLoc:sigma, type = "response") |>
   scale_x_log10(labels = scales::comma)
 ```
 
+
+
+#### [MF] Estimates for the odds ratios for all factors (all possible combinations)
+
+##### Direction
+```{r}
+emmeans(mod, ~ direction | theta_abs:cpLoc:sigma, type = "response") |> 
+  pairs(infer = c(T,T)) |> 
+  as.data.frame()
+```
+
+##### Variance
+```{r}
+emmeans(mod, ~ sigma | theta_abs:direction:cpLoc, type = "response") |> 
+  pairs(infer = c(T,T)) |> 
+  as.data.frame()
+```
+
+##### Magnitude
+```{r}
+emmeans(mod, ~ theta_abs | sigma:direction:cpLoc, type = "response") |> 
+  pairs(infer = c(T,T),reverse=T) |> 
+ as.data.frame()
+```
+
+##### Change Point Location
+
+```{r}
+emmeans(mod, ~ cpLoc | sigma:theta_abs:direction, type = "response") |> 
+  pairs(infer = c(T,T)) |> 
+  as.data.frame()
+```
 Same as above, but switched plotting aesthetics
 
 ```{r}
