@@ -843,6 +843,7 @@ sensspec |>
 
 ### Magnitude
 ```{r}
+
 emmeans(mod, ~ theta_abs | direction:sigma:cpLoc, type = "response") |> 
   pairs(infer = c(T,T),reverse=T) |> 
  as.data.frame()
