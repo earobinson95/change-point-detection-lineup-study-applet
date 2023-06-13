@@ -364,36 +364,6 @@ emmeans(mod, ~ direction | theta_abs:cpLoc:sigma, type = "response") |>
 
 
 
-#### [MF] Estimates for the odds ratios for all factors (all possible combinations)
-
-##### Direction
-```{r}
-emmeans(mod, ~ direction | cpLoc:sigma:theta_abs, type = "response") |> 
-  pairs(infer = c(T,T)) |> 
-  as.data.frame()
-```
-
-##### Variance
-```{r}
-emmeans(mod, ~ sigma | direction:cpLoc:theta_abs, type = "response") |> 
-  pairs(infer = c(T,T)) |> 
-  as.data.frame()
-```
-
-##### Magnitude
-```{r}
-emmeans(mod, ~ theta_abs | sigma:direction:cpLoc, type = "response") |> 
-  pairs(infer = c(T,T),reverse=T) |> 
- as.data.frame()
-```
-
-##### Change Point Location
-
-```{r}
-emmeans(mod, ~ cpLoc | sigma:direction:theta_abs, type = "response") |> 
-  pairs(infer = c(T,T)) |> 
-  as.data.frame()
-```
 Same as above, but switched plotting aesthetics
 
 ```{r}
@@ -866,4 +836,36 @@ sensspec |>
   
   
 
+```
+
+
+## [MF] Estimates for the odds ratios for all factors (all possible combinations)
+
+### Magnitude
+```{r}
+emmeans(mod, ~ theta_abs | sigma:direction:cpLoc, type = "response") |> 
+  pairs(infer = c(T,T),reverse=T) |> 
+ as.data.frame()
+```
+### Direction
+```{r}
+emmeans(mod, ~ direction | cpLoc:sigma:theta_abs, type = "response") |> 
+  pairs(infer = c(T,T)) |> 
+  as.data.frame()
+```
+
+### Variance
+Averaging both directions to focus on perception of magnitude and location vs. variance. Direction vs variance was indirectly discussed in the Direction subsection.
+```{r}
+emmeans(mod, ~ sigma | cpLoc:theta_abs, type = "response") |> 
+  pairs(infer = c(T,T)) |> 
+  as.data.frame()
+```
+
+### Change Point Location
+
+```{r}
+emmeans(mod, ~ cpLoc | sigma:theta_abs, type = "response") |> 
+  pairs(infer = c(T,T)) |> 
+  as.data.frame()
 ```
