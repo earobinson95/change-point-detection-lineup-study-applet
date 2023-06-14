@@ -244,7 +244,9 @@ mod <- glmer(correct ~ direction*theta_abs*sigma*cpLoc + (1 | participant_id),
              ),
              data = all_data_clean
              )
+```
 
+```{r}
 # summary(mod)
 car::Anova(mod)
 anova(mod)
@@ -311,6 +313,41 @@ emmeans(mod, ~ sigma:theta_abs:direction:cpLoc, type = "response", infer = c(T,T
        shape = "Direction") +
   guides(shape = guide_legend(reverse = TRUE),
          color = guide_legend(reverse = TRUE))
+```
+
+### Probability of Magnitude (high baseline) for Noise Level and Direction (averaged over cpLoc)
+
+```{r}
+emmeans(mod, ~ theta_abs:sigma:direction:cpLoc, type = "response") |>
+  as_tibble() |>
+  mutate(direction = fct_relevel(direction, ref = "Negative")) |> 
+  ggplot(aes(y = theta_abs, 
+             color = direction,
+             shape = direction
+             )
+         ) +
+  geom_point(aes(x = prob), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  facet_grid(sigma ~ cpLoc, labeller = label_both) +
+  theme_bw() +
+  theme(aspect.ratio = 0.6) +
+  scale_color_manual(values = c("#D95F02", "#1B9E77")) +
+  labs(y = "",
+       x = "",
+       subtitle = "Mean Shift Magnitude",
+       title = "Probability of Correctly Identifying the Target Panel",
+       color = "Direction",
+       shape = "Direction") +
+  guides(shape = guide_legend(reverse = TRUE),
+         color = guide_legend(reverse = TRUE)) +
+  scale_x_continuous(labels = scales::percent)
 ```
 
 # RESULT 2: COMPARE ODDS POSITIVE / ODDS NEGATIVE
@@ -672,9 +709,45 @@ emmeans(mod, ~ sigma | theta_abs:cpLoc, type = "response") |>
 
 # RESULT 4: MAGNITUDE AND DIRECTION (FOR EACH NOISE LEVEL)
 
-### Probability of Magnitude and Direction for each Sigma (averaged over and cpLoc)
+### Probability of Magnitude (high baseline) for Noise Level and Direction (averaged over cpLoc)
 
 ```{r}
+emmeans(mod, ~ theta_abs | sigma:direction, type = "response") |>
+  as_tibble() |>
+  mutate(direction = fct_relevel(direction, ref = "Negative")) |> 
+  ggplot(aes(y = theta_abs, 
+             color = direction,
+             shape = direction
+             )
+         ) +
+  geom_point(aes(x = prob), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  facet_wrap(~ sigma, ncol = 1, labeller = label_both) +
+  theme_bw() +
+  theme(aspect.ratio = 0.5) +
+  scale_color_manual(values = c("#D95F02", "#1B9E77")) +
+  labs(y = "",
+       x = "",
+       subtitle = "Mean Shift Magnitude",
+       title = "Probability of Correctly Identifying the Target Panel \n(Averaged over Change Point Location)",
+       color = "Direction",
+       shape = "Direction") +
+  guides(shape = guide_legend(reverse = TRUE),
+         color = guide_legend(reverse = TRUE)) +
+  scale_x_continuous(labels = scales::percent)
+```
+
+<!-- ### Probability of Magnitude and Direction for each Sigma (averaged over and cpLoc) -->
+
+```{r}
+#| eval: false
 emmeans(mod, ~ sigma:theta_abs:direction, type = "response", infer = c(T,T)) |>
   as_tibble() |>
   ggplot(aes(y = sigma, 
@@ -707,7 +780,7 @@ emmeans(mod, ~ sigma:theta_abs:direction, type = "response", infer = c(T,T)) |>
          color = guide_legend(reverse = TRUE))
 ```
 
-### Odds of Direction for Noise Level and Magnitude (averaged over and cpLoc)
+### Odds of Direction for Noise Level and Magnitude (averaged over cpLoc)
 
 ```{r}
 emmeans(mod, ~ direction | sigma:theta_abs, type = "response") |>
@@ -742,6 +815,141 @@ emmeans(mod, ~ direction | sigma:theta_abs, type = "response") |>
        shape = "Noise") +
   guides(shape = guide_legend(reverse = TRUE),
          color = guide_legend(reverse = TRUE)) +
+  scale_x_log10(labels = scales::comma)
+```
+
+
+### Odds of Magnitude (high baseline) for Noise Level and Direction (averaged over cpLoc)
+
+```{r}
+emmeans(mod, ~ theta_abs | sigma:direction, type = "response", adjust = "dunnet") |>
+  pairs(infer = c(T,T), reverse = TRUE) |> 
+  as_tibble() |>
+  mutate(contrast = fct_relevel(contrast, levels = c("theta_abs5 / theta_abs3",
+                                                     "theta_abs3 / theta_abs1",
+                                                     "theta_abs5 / theta_abs1"
+                                                     )
+                                )
+        ) |> 
+  mutate(direction = fct_relevel(direction, ref = "Negative")) |> 
+  # filter(str_detect(contrast, pattern = "theta_abs5")) |>
+  ggplot(aes(y = contrast, 
+             color = direction,
+             shape = direction
+             )
+         ) +
+  geom_point(aes(x = odds.ratio), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  geom_vline(xintercept = 1, 
+             color = "darkgray", 
+             linetype = "dashed"
+             ) +
+  facet_wrap(~ sigma, ncol = 1, label = label_both) +
+  theme_bw() +
+  theme(aspect.ratio = 0.5) +
+  scale_color_manual(values = c("#D95F02", "#1B9E77")) +
+  labs(y = "",
+       x = "",
+       subtitle = "Mean Shift Magnitude",
+       title = "Odds of Correctly Identifying the Target Panel \nbetween Magnitude Shifts \n(Averaged over Location)",
+       color = "Direction",
+       shape = "Direction") +
+  guides(shape = guide_legend(reverse = TRUE),
+         color = guide_legend(reverse = TRUE)) +
+  scale_x_log10(labels = scales::comma)
+```
+
+### Odds of Magnitude (high baseline) for Noise Level and Direction for each over cpLoc
+
+```{r}
+emmeans(mod, ~ theta_abs | sigma:direction:cpLoc, type = "response", adjust = "dunnet") |>
+  pairs(infer = c(T,T), reverse = TRUE) |> 
+  as_tibble() |>
+  mutate(contrast = fct_relevel(contrast, levels = c("theta_abs5 / theta_abs3",
+                                                     "theta_abs3 / theta_abs1",
+                                                     "theta_abs5 / theta_abs1"
+                                                     )
+                                )
+        ) |> 
+  mutate(direction = fct_relevel(direction, ref = "Negative")) |> 
+  # filter(str_detect(contrast, pattern = "theta_abs5")) |>
+  ggplot(aes(y = contrast, 
+             color = direction,
+             shape = direction
+             )
+         ) +
+  geom_point(aes(x = odds.ratio), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  geom_vline(xintercept = 1, 
+             color = "darkgray", 
+             linetype = "dashed"
+             ) +
+  facet_grid(sigma ~ cpLoc, label = label_both) +
+  theme_bw() +
+  theme(aspect.ratio = 0.6) +
+  scale_color_manual(values = c("#D95F02", "#1B9E77")) +
+  labs(y = "",
+       x = "",
+       subtitle = "Mean Shift Magnitude",
+       title = "Odds of Correctly Identifying the Target Panel \nbetween a High Shift and Medium/Low Shift \n(Averaged over Location)",
+       color = "Direction",
+       shape = "Direction") +
+  guides(shape = guide_legend(reverse = TRUE),
+         color = guide_legend(reverse = TRUE)) +
+  scale_x_log10(labels = scales::comma)
+```
+
+### Odds of Magnitude (high baseline) for Noise Level (averaged over cpLoc and Direction)
+
+```{r}
+emmeans(mod, ~ theta_abs | sigma, type = "response", adjust = "dunnet") |>
+  pairs(infer = c(T,T), reverse = TRUE) |> 
+  as_tibble() |>
+  mutate(contrast = fct_relevel(contrast, levels = c("theta_abs5 / theta_abs3",
+                                                     "theta_abs3 / theta_abs1",
+                                                     "theta_abs5 / theta_abs1"
+                                                     )
+                                )
+        ) |> 
+  # filter(str_detect(contrast, pattern = "theta_abs5")) |> 
+  ggplot(aes(y = contrast
+             )
+         ) +
+  geom_point(aes(x = odds.ratio), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  geom_vline(xintercept = 1, 
+             color = "darkgray", 
+             linetype = "dashed"
+             ) +
+  facet_wrap(~ sigma, ncol = 1) +
+  theme_bw() +
+  theme(aspect.ratio = 0.25) +
+  # scale_color_brewer(palette = "Dark2") +
+  labs(y = "",
+       x = "",
+       subtitle = "Mean Shift Magnitude",
+       title = "Odds of Correctly Identifying the Target Panel \nbetween a High Magnitude Shift and a Medium and Low \n(Averaged over Location and Direction)") +
   scale_x_log10(labels = scales::comma)
 ```
 
@@ -863,7 +1071,4 @@ sensspec |>
   facet_grid(direction ~ cpLoc,
              labeller = label_both
              )
-  
-  
-
 ```
