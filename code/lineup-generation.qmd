@@ -108,6 +108,65 @@ targetPlot <- function(t, timestep, cpLoc, mu, theta, sigma, gam){
 
 ```
 
+### Examples
+
+```{r}
+parms0 <- expand_grid(t = 30,
+                     timestep = 1,
+                     cpLoc = c(1/3, 1/2, 2/3),
+                     mu = 1,
+                     theta = c(-5, -3, -1, 0, 1, 3, 5),
+                     sigma = c(1, 2),
+                     gam = 0
+)
+
+set.seed(93401)                              
+example_data <- parms0 |> 
+  mutate(target_data = pmap(list(t, timestep, cpLoc, mu, theta, sigma, gam), targetPlot)) |> 
+  unnest(target_data)
+
+low_var <- example_data |> 
+  filter(sigma == 1,
+         theta != 0
+         ) |> 
+  ggplot(aes(x = time,
+             y = value)
+         ) +
+  geom_point(color = "blue", size = 0.75) +
+  facet_grid(cpLoc ~ theta) +
+  theme_bw() +
+  theme(aspect.ratio = 1,
+        axis.text = element_blank()
+        ) +
+  xlab("Time") +
+  ylab("Measured Values") +
+  coord_cartesian(ylim = c(-8,8)) +
+  labs(title = "Low Variance")
+low_var
+ggsave(plot = low_var, filename = here("results", plot = "low-variance-parm-examples.png"), width = 12, height = 6)
+
+high_var <- example_data |> 
+  filter(sigma == 2,
+         theta != 0
+         ) |> 
+  ggplot(aes(x = time,
+             y = value)
+         ) +
+  geom_point(color = "blue", size = 0.75) +
+  facet_grid(cpLoc ~ theta) +
+  theme_bw() +
+  theme(aspect.ratio = 1,
+        axis.text = element_blank()
+        ) +
+  xlab("Time") +
+  ylab("Measured Values") +
+  coord_cartesian(ylim = c(-8,8)) +
+  labs(title = "High Variance")
+high_var
+ggsave(plot = high_var, filename = here("results", plot = "high-variance-parm-examples.png"), width = 12, height = 6)
+
+```
+
 ### Calculate T-statistic for measuring change point strength
 
 ```{r, calcMetrics}
