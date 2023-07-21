@@ -923,6 +923,39 @@ emmeans(mod, ~ theta_abs | sigma, type = "response", adjust = "dunnet") |>
   scale_x_log10(labels = scales::comma)
 ```
 
+
+# [MF] INTERACTION CONTRASTS
+
+### Investigating two-way interactions of change point location and direction for different combinations of magnitude and direction.
+
+```{r}
+# int_contrast <- rep(0,36)
+# int_contrast[1] <- 1
+# int_contrast[7] <- -1
+# int_contrast[13] <- -1
+# int_contrast[20] <- 1
+# int_contrast2 <- rep(0,36)
+# int_contrast2[1] <- 1
+# int_contrast2[7] <- -1
+# int_contrast2[26] <- -1
+# int_contrast2[32] <- 1
+# 
+# ovr_contrast <- rbind(int_contrast,int_contrast2)
+emmeans(mod,~theta_abs:sigma:direction:cpLoc, type="response") |> 
+  emmeans::joint_tests(by=c("theta_abs","sigma"))
+
+
+emmeans(mod,~direction|cpLoc:theta_abs:sigma, type="response", adjust="tukey")|>
+    pairs(infer = c(T,T)) |> 
+  as.data.frame()
+
+emmeans(mod,~cpLoc|direction:theta_abs:sigma, type="response", adjust="tukey")|>
+  pairs(infer = c(T,T), reverse = TRUE) |> 
+  as.data.frame() 
+
+  
+```
+
 # EXPLORING
 
 ### Explore reasoning for theta = 1 and sigma = 1
