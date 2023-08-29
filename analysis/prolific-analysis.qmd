@@ -78,6 +78,7 @@ Look at number of plots per participant
 #   DT::datatable(rownames = F)
 ```
 
+
 ```{r}
 all_data_clean |>
   count(participant_id) |>
@@ -204,6 +205,58 @@ all_data_clean |>
   theme(plot.title = ggtext::element_markdown(size = 14)
         )
 ```
+
+## Demographics
+
+### Age
+```{r}
+all_data_clean |> 
+  count(age) |> 
+  mutate(n = n/12, #accounting for 12 responses from each person.
+         percent=n/sum(n)*100)
+```
+
+### Gender
+```{r}
+all_data_clean |> 
+  count(gender) |> 
+  mutate(n = n/12, #accounting for 12 responses from each person.
+         percent=n/sum(n)*100)
+```
+
+### Educational Attainment
+```{r}
+all_data_clean |> 
+  count(academic_study) |> 
+  mutate(n = n/12, #accounting for 12 responses from each person.
+         percent=n/sum(n)*100)
+```
+
+### Healthcare related jobs
+```{r}
+all_data_clean |> 
+  count(health_related) |> 
+  mutate(n = n/12, #accounting for 12 responses from each person.
+         percent=n/sum(n)*100)
+```
+
+### STEM related jobs
+```{r}
+all_data_clean |> 
+  count(stem_related) |> 
+  mutate(n = n/12, #accounting for 12 responses from each person.
+         percent=n/sum(n)*100)
+```
+
+### Both Healthcare and STEM related jobs
+```{r}
+all_data_clean |> 
+  count(health_related,stem_related) |> 
+  mutate(n = n/12, #accounting for 12 responses from each person.
+         percent=n/sum(n)*100)
+```
+
+
 
 ## Binomial GLMM
 
