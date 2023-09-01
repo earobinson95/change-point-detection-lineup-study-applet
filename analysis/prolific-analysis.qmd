@@ -373,7 +373,10 @@ emmeans(mod, ~ sigma:theta_abs:direction:cpLoc, type = "response", infer = c(T,T
 ```{r}
 emmeans(mod, ~ theta_abs:sigma:direction:cpLoc, type = "response") |>
   as_tibble() |>
-  mutate(direction = fct_relevel(direction, ref = "Negative")) |> 
+  mutate(direction = fct_relevel(direction, 
+                                 c("Negative","Positive")
+                                 )
+         ) |> 
   ggplot(aes(y = theta_abs, 
              color = direction,
              shape = direction
@@ -737,7 +740,10 @@ emmeans(mod, ~ sigma | theta_abs:cpLoc, type = "response") |>
 ```{r}
 emmeans(mod, ~ theta_abs | sigma:direction, type = "response") |>
   as_tibble() |>
-  mutate(direction = fct_relevel(direction, ref = "Negative")) |> 
+  mutate(direction = fct_relevel(direction, 
+                                 c("Negative","Positive")
+                                 )
+         )|> 
   ggplot(aes(y = theta_abs, 
              color = direction,
              shape = direction
@@ -848,13 +854,17 @@ emmeans(mod, ~ direction | sigma:theta_abs, type = "response") |>
 emmeans(mod, ~ theta_abs | sigma:direction, type = "response", adjust = "dunnet") |>
   pairs(infer = c(T,T), reverse = TRUE) |> 
   as_tibble() |>
-  mutate(contrast = fct_relevel(contrast, levels = c("theta_abs5 / theta_abs3",
-                                                     "theta_abs3 / theta_abs1",
-                                                     "theta_abs5 / theta_abs1"
-                                                     )
+  mutate(contrast = fct_relevel(contrast, 
+                                c("theta_abs5 / theta_abs3",
+                                  "theta_abs3 / theta_abs1",
+                                  "theta_abs5 / theta_abs1"
+                                  )
                                 )
         ) |> 
-  mutate(direction = fct_relevel(direction, ref = "Negative")) |> 
+  mutate(direction = fct_relevel(direction, 
+                                 c("Negative","Positive")
+                                 )
+         ) |> 
   # filter(str_detect(contrast, pattern = "theta_abs5")) |>
   ggplot(aes(y = contrast, 
              color = direction,
@@ -895,13 +905,17 @@ emmeans(mod, ~ theta_abs | sigma:direction, type = "response", adjust = "dunnet"
 emmeans(mod, ~ theta_abs | sigma:direction:cpLoc, type = "response", adjust = "dunnet") |>
   pairs(infer = c(T,T), reverse = TRUE) |> 
   as_tibble() |>
-  mutate(contrast = fct_relevel(contrast, levels = c("theta_abs5 / theta_abs3",
-                                                     "theta_abs3 / theta_abs1",
-                                                     "theta_abs5 / theta_abs1"
-                                                     )
+  mutate(contrast = fct_relevel(contrast,  
+                                c("theta_abs5 / theta_abs3",
+                                  "theta_abs3 / theta_abs1",
+                                  "theta_abs5 / theta_abs1"
+                                  )
                                 )
         ) |> 
-  mutate(direction = fct_relevel(direction, ref = "Negative")) |> 
+  mutate(direction = fct_relevel(direction, 
+                                 c("Negative","Positive")
+                                 )
+         ) |> 
   # filter(str_detect(contrast, pattern = "theta_abs5")) |>
   ggplot(aes(y = contrast, 
              color = direction,
@@ -942,10 +956,11 @@ emmeans(mod, ~ theta_abs | sigma:direction:cpLoc, type = "response", adjust = "d
 emmeans(mod, ~ theta_abs | sigma, type = "response", adjust = "dunnet") |>
   pairs(infer = c(T,T), reverse = TRUE) |> 
   as_tibble() |>
-  mutate(contrast = fct_relevel(contrast, levels = c("theta_abs5 / theta_abs3",
-                                                     "theta_abs3 / theta_abs1",
-                                                     "theta_abs5 / theta_abs1"
-                                                     )
+  mutate(contrast = fct_relevel(contrast,  
+                                c("theta_abs5 / theta_abs3",
+                                  "theta_abs3 / theta_abs1",
+                                  "theta_abs5 / theta_abs1"
+                                  )
                                 )
         ) |> 
   # filter(str_detect(contrast, pattern = "theta_abs5")) |> 
