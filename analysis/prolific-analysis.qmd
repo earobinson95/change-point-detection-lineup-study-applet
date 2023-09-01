@@ -991,6 +991,39 @@ emmeans(mod, ~ theta_abs | sigma, type = "response", adjust = "dunnet") |>
   scale_x_log10(labels = scales::comma)
 ```
 
+```{r}
+emmeans(mod, ~ sigma|theta_abs, type = "response", adjust = "dunnet") |>
+  pairs(infer = c(T,T))  |> 
+  as_tibble() |>
+
+  # filter(str_detect(contrast, pattern = "theta_abs5")) |> 
+  ggplot(aes(y = contrast,group=theta_abs, color=theta_abs
+             )
+         ) +
+  geom_point(aes(x = odds.ratio), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  geom_vline(xintercept = 1, 
+             color = "darkgray", 
+             linetype = "dashed"
+             ) +
+  # facet_wrap(~ theta_abs, ncol = 1) +
+  theme_bw() +
+  theme(aspect.ratio = 0.25) +
+  # scale_color_brewer(palette = "Dark2") +
+  labs(y = "",
+       x = "",
+       subtitle = "Mean Shift Magnitude",
+       title = "Odds of Correctly Identifying the Target Panel \nbetween Low and High Variance \n(Averaged over Location and Direction)") +
+  scale_x_log10(labels = scales::comma)
+```
+
 #### Table of Odds ratio estimates (Shift Magnitude)
 
 ```{r}
