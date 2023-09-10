@@ -1069,39 +1069,240 @@ emmeans(mod,~cpLoc|direction:theta_abs:sigma, type="response", adjust="tukey")|>
 
 # EXPLORING
 
+## Exploring Correct Answers
+
+### Explore reasoning for theta=5, sigma=1
+
+Top 10 reasons.
+
+```{r}
+# all_data_clean |> 
+#   filter(theta %in% c(-5,5),
+#          sigma == 1,
+#          correct == 1) |> 
+#   count(version, choice_reason) |>
+#   pivot_wider(id_cols = choice_reason,
+#               names_from = version,
+#               values_from = n)
+
+all_data_clean |> 
+  filter(theta %in% c(-5,5),
+         sigma == 1,
+         correct == 1) |> 
+  count(choice_reason) |>
+  arrange(-n) |> 
+  mutate(pct=n/sum(n)*100) |> 
+  slice_head(n=10)
+
+
+all_data_clean |> 
+  filter(theta %in% c(-5,5),
+         sigma == 1,
+         correct == 1) |>
+  mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier)) |> 
+  pivot_longer(cols=cluster:outlier,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+```
+
+
 ### Explore reasoning for theta = 1 and sigma = 1
 
 ```{r}
+# all_data_clean |> 
+#   filter(theta %in% c(1,-1),
+#          sigma == 1,
+#          correct == 1) |> 
+#   count(version, choice_reason) |>
+#   pivot_wider(id_cols = choice_reason,
+#               names_from = version,
+#               values_from = n)
+
 all_data_clean |> 
-  filter(theta == -1,
+  filter(theta %in% c(1,-1),
          sigma == 1,
          correct == 1) |> 
-  count(version, choice_reason) |>
-  pivot_wider(id_cols = choice_reason,
-              names_from = version,
-              values_from = n)
+  count(choice_reason) |>
+  arrange(-n) |> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |> 
+  filter(theta %in% c(1,-1),
+         sigma == 1,
+         correct == 1) |>
+  mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier)) |> 
+  pivot_longer(cols=cluster:outlier,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
 ```
 
 
+
+
+## Exploring Incorrect Answers for High Variance
+
+### Low shifts
+
+#### Correct Answers
 ```{r}
 all_data_clean |> 
-  filter(theta == 3,
-         sigma == 2,
-         correct == 1) |> 
-  count(version, choice_reason) |>
-  pivot_wider(id_cols = choice_reason,
-              names_from = version,
-              values_from = n)
-
-
-all_data_clean |> 
-  filter(theta == -3,
+  filter(theta %in% c(1,-1),
          sigma == 2,
          correct == 1) |> 
   count(choice_reason) |>
-  arrange(-n)
+  arrange(-n) |> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |> 
+  filter(theta %in% c(1,-1),
+         sigma == 2,
+         correct == 1) |> 
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier)) |> 
+  pivot_longer(cols=cluster:outlier,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
 ```
 
+#### Incorrect Answers
+```{r}
+all_data_clean |> 
+  filter(theta %in% c(1,-1),
+         sigma == 2,
+         correct == 0) |> 
+  count(choice_reason) |>
+  arrange(-n)|> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |> 
+  filter(theta %in% c(1,-1),
+         sigma == 2,
+         correct == 0) |>   mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier)) |> 
+  pivot_longer(cols=cluster:outlier,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+```
+
+### Moderate shifts
+
+#### Correct Answers
+```{r}
+# all_data_clean |> 
+#   filter(theta == 3,
+#          sigma == 2,
+#          correct == 1) |> 
+#   count(version, choice_reason) |>
+#   pivot_wider(id_cols = choice_reason,
+#               names_from = version,
+#               values_from = n)
+
+
+all_data_clean |> 
+  filter(theta %in% c(-3,3),
+         sigma == 2,
+         correct == 1) |> 
+  count(choice_reason) |>
+  arrange(-n)|> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |> 
+  filter(theta %in% c(-3,3),
+         sigma == 2,
+         correct == 1) |> 
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier)) |> 
+  pivot_longer(cols=cluster:outlier,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+```
+
+#### Incorrect Answers
+```{r}
+# all_data_clean |> 
+#   filter(theta == 3,
+#          sigma == 2,
+#          correct == 1) |> 
+#   count(version, choice_reason) |>
+#   pivot_wider(id_cols = choice_reason,
+#               names_from = version,
+#               values_from = n)
+
+
+all_data_clean |> 
+  filter(theta %in% c(-3,3),
+         sigma == 2,
+         correct == 0) |> 
+  count(choice_reason) |>
+  arrange(-n)|> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |> 
+  filter(theta %in% c(-3,3),
+         sigma == 2,
+         correct == 0) |> 
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier)) |> 
+  pivot_longer(cols=cluster:outlier,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+```
 
 ## Sensitivity Analysis against the t-test
 
