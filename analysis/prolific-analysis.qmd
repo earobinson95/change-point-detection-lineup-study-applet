@@ -1068,7 +1068,7 @@ emmeans(mod,~cpLoc|direction:theta_abs:sigma, type="response", adjust="tukey")|>
   
 ```
 
-# EXPLORING
+# Reasons
 
 ## Exploring Correct Answers
 
@@ -1522,7 +1522,412 @@ all_data_clean |>
   arrange(-count)
 ```
 
-## Confidence in Answer
+## Exploring Direction
+
+### Positive Shifts
+
+#### Correct Identification
+```{r}
+all_data_clean |> 
+  filter(theta %in% c(1,3,5),
+          correct == 1) |> 
+  count(choice_reason) |>
+  arrange(-n)|> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |> 
+  filter(theta %in% c(1,3,5),
+         correct == 1) |> 
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+
+```
+
+
+#### Incorrect Identification
+```{r}
+all_data_clean |> 
+  filter(theta %in% c(1,3,5),
+          correct == 0) |> 
+  count(choice_reason) |>
+  arrange(-n)|> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |> 
+  filter(theta %in% c(1,3,5),
+         correct == 0) |> 
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+
+```
+
+
+### Negative Shifts
+
+#### Correct Identification
+```{r}
+all_data_clean |> 
+  filter(theta %in% c(-1,-3,-5),
+          correct == 1) |> 
+  count(choice_reason) |>
+  arrange(-n)|> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |> 
+  filter(theta %in% c(-1,-3,-5),
+         correct == 1) |> 
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+
+```
+
+
+#### Incorrect Identification
+```{r}
+all_data_clean |> 
+  filter(theta %in% c(-1,-3,-5),
+          correct == 0) |> 
+  count(choice_reason) |>
+  arrange(-n)|> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |> 
+  filter(theta %in% c(-1,-3,-5),
+         correct == 0) |> 
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+
+```
+
+## Exploring location
+
+### Early
+
+#### Correct Identification
+```{r}
+all_data_clean |>  
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667"
+                            )
+         )|> 
+  filter(cpLoc == "Early",
+          correct == 1) |> 
+  count(choice_reason) |>
+  arrange(-n)|> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |>  
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667"
+                            )
+         )|> 
+  filter(cpLoc == "Early",
+          correct == 1) |> 
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+
+```
+
+
+#### Incorrect Identification
+```{r}
+all_data_clean |> 
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667"
+                            )
+         )|> 
+  filter(cpLoc == "Early",
+          correct == 0) |> 
+  count(choice_reason) |>
+  arrange(-n)|> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |> 
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667"
+                            )
+         )|> 
+  filter(cpLoc == "Early",
+          correct == 0) |> 
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+
+```
+
+### Middle
+
+#### Correct Identification
+```{r}
+all_data_clean |>  
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667"
+                            )
+         )|> 
+  filter(cpLoc == "Middle",
+          correct == 1) |> 
+  count(choice_reason) |>
+  arrange(-n)|> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |>  
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667"
+                            )
+         )|> 
+  filter(cpLoc == "Middle",
+          correct == 1) |> 
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+
+```
+
+
+#### Incorrect Identification
+```{r}
+all_data_clean |> 
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667"
+                            )
+         )|> 
+  filter(cpLoc == "Middle",
+          correct == 0) |> 
+  count(choice_reason) |>
+  arrange(-n)|> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |> 
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667"
+                            )
+         )|> 
+  filter(cpLoc == "Middle",
+          correct == 0) |> 
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+
+```
+
+### Late
+
+#### Correct Identification
+```{r}
+all_data_clean |>  
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667"
+                            )
+         )|> 
+  filter(cpLoc == "Late",
+          correct == 1) |> 
+  count(choice_reason) |>
+  arrange(-n)|> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |>  
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667"
+                            )
+         )|> 
+  filter(cpLoc == "Late",
+          correct == 1) |> 
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+
+```
+
+
+#### Incorrect Identification
+```{r}
+all_data_clean |> 
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667"
+                            )
+         )|> 
+  filter(cpLoc == "Late",
+          correct == 0) |> 
+  count(choice_reason) |>
+  arrange(-n)|> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |> 
+  mutate(cpLoc = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667"
+                            )
+         )|> 
+  filter(cpLoc == "Late",
+          correct == 0) |> 
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+
+```
+
+
+# Confidence in Selection
+
+Formal statistical analysis was performed in SAS. :)
 
 ### Correct Answers
 ```{r}
@@ -1631,7 +2036,7 @@ xtabs(~theta_abs+conf_level,data=adc2) |>
 <!--              ) -->
 <!-- ``` -->
 
-## [MF] Estimates for the odds ratios for all factors (all possible combinations)
+# [MF] Estimates for the odds ratios for all factors (all possible combinations)
 
 ### Magnitude
 ```{r}
