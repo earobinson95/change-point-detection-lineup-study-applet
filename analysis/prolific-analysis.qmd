@@ -21,6 +21,7 @@ library(ggtext)
 library(DT)
 library(yardstick)
 library(caret)
+library(tigerstats)
 ```
 
 ## Clean Data (or load cleaned data)
@@ -1071,9 +1072,128 @@ emmeans(mod,~cpLoc|direction:theta_abs:sigma, type="response", adjust="tukey")|>
 
 ## Exploring Correct Answers
 
-### Explore reasoning for theta=5, sigma=1
+```{r}
+all_data_clean |> 
+  filter(correct == 1) |> 
+  count(choice_reason) |>
+  arrange(-n) |> 
+  mutate(pct=n/sum(n)*100)
 
-Top 10 reasons.
+all_data_clean |> 
+  filter(correct == 1) |> 
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+```
+
+## Exploring Incorrect Answers
+
+```{r}
+all_data_clean |> 
+  filter(correct == 0) |> 
+  count(choice_reason) |>
+  arrange(-n) |> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |> 
+  filter(correct == 0) |> 
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+```
+
+## High vs Low Magnitude Shift
+
+### High
+```{r}
+all_data_clean |> 
+  filter(theta_abs %in% c(5,-5),
+         correct == 1) |> 
+  count(choice_reason) |>
+  arrange(-n) |> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |> 
+  filter(theta_abs%in% c(5,-5),
+         correct == 1) |> 
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+```
+
+### Low
+
+```{r}
+all_data_clean |> 
+  filter(theta_abs%in%c(1,-1),
+         correct == 1) |> 
+  count(choice_reason) |>
+  arrange(-n) |> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |> 
+  filter(theta_abs%in%c(1,-1),
+         correct == 1) |> 
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+```
+
+## Exploring Low Variance
+
+### Explore reason for correct answers for theta=5, sigma=1
 
 ```{r}
 # all_data_clean |> 
@@ -1099,16 +1219,62 @@ all_data_clean |>
   filter(theta %in% c(-5,5),
          sigma == 1,
          correct == 1) |>
-  mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
          slope = stringr::str_count(choice_reason, "slope"),
          range = stringr::str_count(choice_reason, "range"),
          outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
   ) |> 
   summarize(cluster=sum(cluster),
             slope=sum(slope),
             range=sum(range),
-            outlier=sum(outlier)) |> 
-  pivot_longer(cols=cluster:outlier,
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+```
+
+### Explore reason for incorrect answers for theta=5, sigma=1
+
+```{r}
+# all_data_clean |> 
+#   filter(theta %in% c(-5,5),
+#          sigma == 1,
+#          correct == 1) |> 
+#   count(version, choice_reason) |>
+#   pivot_wider(id_cols = choice_reason,
+#               names_from = version,
+#               values_from = n)
+
+all_data_clean |> 
+  filter(theta %in% c(-5,5),
+         sigma == 1,
+         correct == 0) |> 
+  count(choice_reason) |>
+  arrange(-n) |> 
+  mutate(pct=n/sum(n)*100) |> 
+  slice_head(n=10)
+
+
+all_data_clean |> 
+  filter(theta %in% c(-5,5),
+         sigma == 1,
+         correct == 0) |>
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
                names_to="response",
                values_to="count") |> 
   mutate(pct= 100*count/sum(count)) |> 
@@ -1116,7 +1282,7 @@ all_data_clean |>
 ```
 
 
-### Explore reasoning for theta = 1 and sigma = 1
+### Explore reason for correct answers theta = 1 and sigma = 1
 
 ```{r}
 # all_data_clean |> 
@@ -1140,16 +1306,18 @@ all_data_clean |>
   filter(theta %in% c(1,-1),
          sigma == 1,
          correct == 1) |>
-  mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
          slope = stringr::str_count(choice_reason, "slope"),
          range = stringr::str_count(choice_reason, "range"),
          outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
   ) |> 
   summarize(cluster=sum(cluster),
             slope=sum(slope),
             range=sum(range),
-            outlier=sum(outlier)) |> 
-  pivot_longer(cols=cluster:outlier,
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
                names_to="response",
                values_to="count") |> 
   mutate(pct= 100*count/sum(count)) |> 
@@ -1157,11 +1325,53 @@ all_data_clean |>
 ```
 
 
+### Explore reason for incorrect answers theta = 1 and sigma = 1
+
+```{r}
+# all_data_clean |> 
+#   filter(theta %in% c(1,-1),
+#          sigma == 1,
+#          correct == 1) |> 
+#   count(version, choice_reason) |>
+#   pivot_wider(id_cols = choice_reason,
+#               names_from = version,
+#               values_from = n)
+
+all_data_clean |> 
+  filter(theta %in% c(1,-1),
+         sigma == 1,
+         correct == 0) |> 
+  count(choice_reason) |>
+  arrange(-n) |> 
+  mutate(pct=n/sum(n)*100)
+
+all_data_clean |> 
+  filter(theta %in% c(1,-1),
+         sigma == 1,
+         correct == 0) |>
+    mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
+  ) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
+               names_to="response",
+               values_to="count") |> 
+  mutate(pct= 100*count/sum(count)) |> 
+  arrange(-count)
+```
 
 
-## Exploring Incorrect Answers for High Variance
+## Exploring High Variance
 
-### Low shifts
+
+### Low shifts, High Variance
 
 #### Correct Answers
 ```{r}
@@ -1181,12 +1391,14 @@ all_data_clean |>
          slope = stringr::str_count(choice_reason, "slope"),
          range = stringr::str_count(choice_reason, "range"),
          outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
   ) |> 
   summarize(cluster=sum(cluster),
             slope=sum(slope),
             range=sum(range),
-            outlier=sum(outlier)) |> 
-  pivot_longer(cols=cluster:outlier,
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
                names_to="response",
                values_to="count") |> 
   mutate(pct= 100*count/sum(count)) |> 
@@ -1206,23 +1418,25 @@ all_data_clean |>
 all_data_clean |> 
   filter(theta %in% c(1,-1),
          sigma == 2,
-         correct == 0) |>   mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         correct == 0) |>       mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
          slope = stringr::str_count(choice_reason, "slope"),
          range = stringr::str_count(choice_reason, "range"),
          outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
   ) |> 
   summarize(cluster=sum(cluster),
             slope=sum(slope),
             range=sum(range),
-            outlier=sum(outlier)) |> 
-  pivot_longer(cols=cluster:outlier,
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
                names_to="response",
                values_to="count") |> 
   mutate(pct= 100*count/sum(count)) |> 
   arrange(-count)
 ```
 
-### Moderate shifts
+### High shifts, High Variance
 
 #### Correct Answers
 ```{r}
@@ -1237,7 +1451,7 @@ all_data_clean |>
 
 
 all_data_clean |> 
-  filter(theta %in% c(-3,3),
+  filter(theta %in% c(-5,5),
          sigma == 2,
          correct == 1) |> 
   count(choice_reason) |>
@@ -1245,19 +1459,21 @@ all_data_clean |>
   mutate(pct=n/sum(n)*100)
 
 all_data_clean |> 
-  filter(theta %in% c(-3,3),
+  filter(theta %in% c(-5,5),
          sigma == 2,
          correct == 1) |> 
     mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
          slope = stringr::str_count(choice_reason, "slope"),
          range = stringr::str_count(choice_reason, "range"),
          outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
   ) |> 
   summarize(cluster=sum(cluster),
             slope=sum(slope),
             range=sum(range),
-            outlier=sum(outlier)) |> 
-  pivot_longer(cols=cluster:outlier,
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
                names_to="response",
                values_to="count") |> 
   mutate(pct= 100*count/sum(count)) |> 
@@ -1277,7 +1493,7 @@ all_data_clean |>
 
 
 all_data_clean |> 
-  filter(theta %in% c(-3,3),
+  filter(theta %in% c(-5,5),
          sigma == 2,
          correct == 0) |> 
   count(choice_reason) |>
@@ -1285,108 +1501,135 @@ all_data_clean |>
   mutate(pct=n/sum(n)*100)
 
 all_data_clean |> 
-  filter(theta %in% c(-3,3),
+  filter(theta %in% c(-5,5),
          sigma == 2,
          correct == 0) |> 
     mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
          slope = stringr::str_count(choice_reason, "slope"),
          range = stringr::str_count(choice_reason, "range"),
          outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
   ) |> 
   summarize(cluster=sum(cluster),
             slope=sum(slope),
             range=sum(range),
-            outlier=sum(outlier)) |> 
-  pivot_longer(cols=cluster:outlier,
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
                names_to="response",
                values_to="count") |> 
   mutate(pct= 100*count/sum(count)) |> 
   arrange(-count)
 ```
 
-## Sensitivity Analysis against the t-test
+## Confidence in Answer
 
+### Correct Answers
 ```{r}
-
 all_data_clean |> 
-  mutate(ttest_decision = as.factor(as.numeric(pvalue<0.05)),
-         correct=as.factor(correct)) |> 
-  select(theta_abs,direction,cpLoc, sigma, correct,ttest_decision) |> 
-  group_by(theta_abs,direction,cpLoc,sigma) |> 
-  arrange(theta_abs,direction,cpLoc,sigma) |> 
-  rowwise() |> 
-  mutate(TP=ifelse(ttest_decision==1 & correct==1,1,0),
-         FP = ifelse(ttest_decision==0 & correct==1,1,0),
-         TN= ifelse(ttest_decision==0 & correct==0,1,0),
-         FN=ifelse(ttest_decision==1 & correct==0,1,0)) |> 
-  ungroup() |> 
-  group_by(theta_abs,direction,cpLoc,sigma) |> 
-  summarize(TPtotal=sum(TP),
-            FPtotal=sum(FP),
-            TNtotal=sum(TN),
-            FNtotal=sum(FN)) |> 
-  mutate(sensitivity=ifelse(TPtotal+FNtotal!=0,TPtotal/(TPtotal+FNtotal),0),
-        specificity=ifelse(TNtotal+FPtotal!=0,TNtotal/(TNtotal+FPtotal),0)
-            ) ->sensspec
-# write.csv(sensspec,file = "Sensitivity-Specificity Analysis.csv")  
-
-sensspec |> 
-      mutate(cpLoc = fct_recode(cpLoc,
-                            "Early" = "0.333333333",
-                            "Middle" = "0.5",
-                            "Late" = "0.666666667"),
-             sigma = fct_recode(sigma,
-                                "Low Variance"="1",
-                                "High Variance"="2"),
-             theta_abs = fct_recode(theta_abs,
-                                    "Low" = "1",
-                                    "Medium" = "3",
-                                    "High" = "5"),
-             direction = fct_recode(direction,
-                                    "(+)"="Positive",
-                                    "(-)"="Negative")
-         ) |> 
-  ggplot(aes(y=sensitivity,x=theta_abs,color=sigma,shape=sigma)) + 
-  geom_point(size=3)+
-  theme_bw() + 
-  scale_color_brewer(palette = "Dark2") +
-  labs(y = "Sensitivity",
-       x = "Shift Magnitude",
-       color = "Noise",
-       shape = "Noise") +
-  facet_grid(direction ~ cpLoc,
-             labeller = label_both
-             )
-
-sensspec |> 
-      mutate(cpLoc = fct_recode(cpLoc,
-                            "Early" = "0.333333333",
-                            "Middle" = "0.5",
-                            "Late" = "0.666666667"),
-             sigma = fct_recode(sigma,
-                                "Low Variance"="1",
-                                "High Variance"="2"),
-             theta_abs = fct_recode(theta_abs,
-                                    "Low" = "1",
-                                    "Medium" = "3",
-                                    "High" = "5"),
-             direction = fct_recode(direction,
-                                    "(+)"="Positive",
-                                    "(-)"="Negative")
-         ) |> 
-  ggplot(aes(y=specificity,x=theta_abs,color=sigma,shape=sigma)) + 
-  geom_point(size=3)+
-  theme_bw() + 
-  # theme(aspect.ratio = 0.6) +
-  scale_color_brewer(palette = "Dark2") +
-  labs(y = "Specificity",
-       x = "Shift Magnitude",
-       color = "Noise",
-       shape = "Noise") +
-  facet_grid(direction ~ cpLoc,
-             labeller = label_both
-             )
+  mutate(conf_level=fct_relevel(conf_level, 
+                                c("Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"))
+  ) |> 
+  filter(correct==1)->adc1
+xtabs(~theta_abs+conf_level,data=adc1) |> 
+  tigerstats::rowPerc()
 ```
+
+### Incorrect Answers
+```{r}
+all_data_clean |> 
+  mutate(conf_level=fct_relevel(conf_level, 
+                                c("Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"))
+  ) |> 
+  filter(correct==0)->adc2
+xtabs(~theta_abs+conf_level,data=adc2) |> 
+  tigerstats::rowPerc()
+```
+
+
+<!-- ## Sensitivity Analysis against the t-test -->
+
+<!-- ```{r} -->
+
+<!-- all_data_clean |>  -->
+<!--   mutate(ttest_decision = as.factor(as.numeric(pvalue<0.05)), -->
+<!--          correct=as.factor(correct)) |>  -->
+<!--   select(theta_abs,direction,cpLoc, sigma, correct,ttest_decision) |>  -->
+<!--   group_by(theta_abs,direction,cpLoc,sigma) |>  -->
+<!--   arrange(theta_abs,direction,cpLoc,sigma) |>  -->
+<!--   rowwise() |>  -->
+<!--   mutate(TP=ifelse(ttest_decision==1 & correct==1,1,0), -->
+<!--          FP = ifelse(ttest_decision==0 & correct==1,1,0), -->
+<!--          TN= ifelse(ttest_decision==0 & correct==0,1,0), -->
+<!--          FN=ifelse(ttest_decision==1 & correct==0,1,0)) |>  -->
+<!--   ungroup() |>  -->
+<!--   group_by(theta_abs,direction,cpLoc,sigma) |>  -->
+<!--   summarize(TPtotal=sum(TP), -->
+<!--             FPtotal=sum(FP), -->
+<!--             TNtotal=sum(TN), -->
+<!--             FNtotal=sum(FN)) |>  -->
+<!--   mutate(sensitivity=ifelse(TPtotal+FNtotal!=0,TPtotal/(TPtotal+FNtotal),0), -->
+<!--         specificity=ifelse(TNtotal+FPtotal!=0,TNtotal/(TNtotal+FPtotal),0) -->
+<!--             ) ->sensspec -->
+<!-- # write.csv(sensspec,file = "Sensitivity-Specificity Analysis.csv")   -->
+
+<!-- sensspec |>  -->
+<!--       mutate(cpLoc = fct_recode(cpLoc, -->
+<!--                             "Early" = "0.333333333", -->
+<!--                             "Middle" = "0.5", -->
+<!--                             "Late" = "0.666666667"), -->
+<!--              sigma = fct_recode(sigma, -->
+<!--                                 "Low Variance"="1", -->
+<!--                                 "High Variance"="2"), -->
+<!--              theta_abs = fct_recode(theta_abs, -->
+<!--                                     "Low" = "1", -->
+<!--                                     "Medium" = "3", -->
+<!--                                     "High" = "5"), -->
+<!--              direction = fct_recode(direction, -->
+<!--                                     "(+)"="Positive", -->
+<!--                                     "(-)"="Negative") -->
+<!--          ) |>  -->
+<!--   ggplot(aes(y=sensitivity,x=theta_abs,color=sigma,shape=sigma)) +  -->
+<!--   geom_point(size=3)+ -->
+<!--   theme_bw() +  -->
+<!--   scale_color_brewer(palette = "Dark2") + -->
+<!--   labs(y = "Sensitivity", -->
+<!--        x = "Shift Magnitude", -->
+<!--        color = "Noise", -->
+<!--        shape = "Noise") + -->
+<!--   facet_grid(direction ~ cpLoc, -->
+<!--              labeller = label_both -->
+<!--              ) -->
+
+<!-- sensspec |>  -->
+<!--       mutate(cpLoc = fct_recode(cpLoc, -->
+<!--                             "Early" = "0.333333333", -->
+<!--                             "Middle" = "0.5", -->
+<!--                             "Late" = "0.666666667"), -->
+<!--              sigma = fct_recode(sigma, -->
+<!--                                 "Low Variance"="1", -->
+<!--                                 "High Variance"="2"), -->
+<!--              theta_abs = fct_recode(theta_abs, -->
+<!--                                     "Low" = "1", -->
+<!--                                     "Medium" = "3", -->
+<!--                                     "High" = "5"), -->
+<!--              direction = fct_recode(direction, -->
+<!--                                     "(+)"="Positive", -->
+<!--                                     "(-)"="Negative") -->
+<!--          ) |>  -->
+<!--   ggplot(aes(y=specificity,x=theta_abs,color=sigma,shape=sigma)) +  -->
+<!--   geom_point(size=3)+ -->
+<!--   theme_bw() +  -->
+<!--   # theme(aspect.ratio = 0.6) + -->
+<!--   scale_color_brewer(palette = "Dark2") + -->
+<!--   labs(y = "Specificity", -->
+<!--        x = "Shift Magnitude", -->
+<!--        color = "Noise", -->
+<!--        shape = "Noise") + -->
+<!--   facet_grid(direction ~ cpLoc, -->
+<!--              labeller = label_both -->
+<!--              ) -->
+<!-- ``` -->
 
 ## [MF] Estimates for the odds ratios for all factors (all possible combinations)
 
