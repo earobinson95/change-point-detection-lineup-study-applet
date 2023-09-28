@@ -16,6 +16,26 @@ set lineup;
 where correct=1;
 run;
 
+/*Correct and incorrect controlling for magnitude and variance*/
+
+proc sort data=lineup;
+by correct conf_level_code;
+run;
+
+proc freq data=lineup order=data;
+title "Accuracy vs confidence";
+tables correct*conf_level_code/cmh chisq measures nocol nopct cl;
+run;
+
+proc sort data=lineup;
+by theta_abs  conf_level_code;
+run;
+proc freq data=lineup order=data;
+title "Accuracy vs confidence: controlling for magnitude and direction";
+tables sigma*theta_abs*correct*conf_level_code/cmh chisq measures nocol nopct cl;
+run;
+
+/*magnitude/variance*/
 proc sort data=lineup;
 by theta_abs conf_level_code;
 run;
