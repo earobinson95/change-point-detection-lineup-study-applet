@@ -24,15 +24,17 @@ run;
 
 proc freq data=lineup order=data;
 title "Accuracy vs confidence";
-tables correct*conf_level_code/cmh chisq measures nocol nopct cl;
+tables correct*conf_level/cmh chisq measures nocol nopct cl;
 run;
 
 proc sort data=lineup;
-by theta_abs  conf_level_code;
+by sigma theta_abs  conf_level_code;
 run;
 proc freq data=lineup order=data;
 title "Accuracy vs confidence: controlling for magnitude and direction";
-tables sigma*theta_abs*correct*conf_level_code/cmh chisq measures nocol nopct cl;
+tables sigma*theta_abs*correct*conf_level/cmh chisq measures nocol nopct cl;
+tables sigma*correct*conf_level/noprint cmh chisq measures cl;
+tables theta_abs*correct*conf_level/noprint cmh chisq measures cl;
 run;
 
 /*magnitude/variance*/
@@ -66,6 +68,15 @@ where stem_related IN ("Yes","No");
 tables stem_related*conf_level/cmh chisq measures nocol nopct cl;
 run;
 
+proc sort data=lineup;
+by stem_related correct conf_level_code;
+
+proc freq data=lineup order=data;
+title "Work in Stem";
+where stem_related IN ("Yes","No");
+tables stem_related*correct*conf_level/cmh chisq measures nocol nopct cl;
+run;
+
 /*Healthcare Related*/
 proc sort data=lineup;
 by health_related conf_level_code;
@@ -74,6 +85,15 @@ proc freq data=lineup order=data;
 title "Work in Healthcare";
 where health_related IN ("Yes","No");
 tables health_related*conf_level/cmh chisq measures nocol nopct cl;
+run;
+
+proc sort data=lineup;
+by health_related correct conf_level_code;
+
+proc freq data=lineup order=data;
+title "Work in Healthcare";
+where health_related IN ("Yes","No");
+tables health_related*correct*conf_level/cmh chisq measures nocol nopct cl;
 run;
 
 /*Educational Attainment*/
@@ -85,4 +105,13 @@ proc freq data=lineup order=data;
 title "Educational Attainment";
 where educ_code IN (1,2,3,4,5);
 tables academic_study*conf_level/cmh chisq measures nocol nopct cl scores=modridit;
+run;
+
+proc sort data=lineup;
+by educ_code correct conf_level_code;
+
+proc freq data=lineup order=data;
+title "Educational Attainment";
+where educ_code IN (1,2,3,4,5);
+tables academic_study*correct*conf_level/cmh chisq measures nocol nopct cl scores=modridit;
 run;
