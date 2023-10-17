@@ -111,6 +111,31 @@ targetPlot <- function(t, timestep, cpLoc, mu, theta, sigma, gam){
 ### Examples
 
 ```{r}
+# labellers for plotting
+
+sigma_level <- c(
+  "1" = "Low Variance",
+  "2" = "High Variance"
+)
+
+cploc_level <- c(
+  "0.33" = "Early Change",
+  "0.5" = "Middle Change",
+  "0.67" = "Late Change"
+)
+
+theta_level <- c(
+  "-5" = "- High Shift",
+  "-3" = "- Moderate Shift",
+  "-1" = "- Low Shift",
+  "5" = "+ High Shift",
+  "3" = "+ Moderate Shift",
+  "1" = "+ Low Shift"
+)
+
+```
+
+```{r}
 parms0 <- expand_grid(t = 30,
                      timestep = 1,
                      cpLoc = c(1/3, 1/2, 2/3),
@@ -129,11 +154,15 @@ low_var <- example_data |>
   filter(sigma == 1,
          theta != 0
          ) |> 
+  mutate(cpLoc = round(cpLoc, digits = 2)) |> 
   ggplot(aes(x = time,
              y = value)
          ) +
   geom_point(color = "blue", size = 0.75) +
-  facet_grid(cpLoc ~ theta) +
+  facet_grid(cpLoc ~ theta,
+             labeller = labeller(cpLoc = cploc_level,
+                                 theta = theta_level)
+             ) +
   theme_bw() +
   theme(aspect.ratio = 1,
         axis.text = element_blank()
@@ -149,11 +178,15 @@ high_var <- example_data |>
   filter(sigma == 2,
          theta != 0
          ) |> 
+  mutate(cpLoc = round(cpLoc, digits = 2)) |> 
   ggplot(aes(x = time,
              y = value)
          ) +
   geom_point(color = "blue", size = 0.75) +
-  facet_grid(cpLoc ~ theta) +
+  facet_grid(cpLoc ~ theta,
+             labeller = labeller(cpLoc = cploc_level,
+                                 theta = theta_level)
+             )+
   theme_bw() +
   theme(aspect.ratio = 1,
         axis.text = element_blank()
