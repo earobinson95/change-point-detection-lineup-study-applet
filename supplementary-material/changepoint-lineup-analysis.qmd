@@ -1,0 +1,536 @@
+---
+title: "Manuscript Analysis"
+subtitle: "Can You See The Change? Change Point Detection Using Visual Inference"
+format: html
+editor: source
+execute:
+  echo: true
+  message: false
+  warning: false
+---
+
+```{r setup}
+library(here)
+library(tidyverse)
+library(ggtext)
+library(DT)
+library(yardstick)
+library(caret)
+library(tigerstats)
+library(ggh4x)
+```
+
+## Read in Participant Data
+
+```{r}
+all_data_clean <- read_csv("changepoint-lineup-participant-data.csv") |> 
+  mutate(across(lineup_id:version, ~ as.factor(.x)),
+         direction = fct_relevel(direction, c("Positive", "Negative"))
+         )
+```
+
+```{r}
+# labellers for plotting
+
+sigma_level <- c(
+  "1" = "Low Variance",
+  "2" = "High Variance"
+)
+
+cploc_level <- c(
+  "0.333333333" = "Early Change",
+  "0.5" = "Middle Change",
+  "0.666666667" = "Late Change"
+)
+
+theta_level <- c(
+  "-5" = "- High Shift",
+  "-3" = "- Moderate Shift",
+  "-1" = "- Low Shift",
+  "5" = "+ High Shift",
+  "3" = "+ Moderate Shift",
+  "1" = "+ Low Shift"
+)
+
+theta_level2 <- c(
+  "5" = "High Shift",
+  "3" = "Moderate Shift",
+  "1" = "Low Shift"
+)
+
+correct_level <- c(
+  "0" = "Incorrect Target Identification",
+  "1" = "Correct Target Identification"
+)
+```
+
+## Participant Demographics
+
+### Age
+```{r}
+all_data_clean |> 
+  count(age) |> 
+  mutate(n = n/12, #accounting for 12 responses from each person.
+         percent=n/sum(n)*100)
+```
+
+### Gender
+```{r}
+all_data_clean |> 
+  count(gender) |> 
+  mutate(n = n/12, #accounting for 12 responses from each person.
+         percent=n/sum(n)*100)
+```
+
+### Educational Attainment
+```{r}
+all_data_clean |> 
+  count(academic_study) |> 
+  mutate(n = n/12, #accounting for 12 responses from each person.
+         percent=n/sum(n)*100)
+```
+
+### Healthcare related jobs
+```{r}
+all_data_clean |> 
+  count(health_related) |> 
+  mutate(n = n/12, #accounting for 12 responses from each person.
+         percent=n/sum(n)*100)
+```
+
+### STEM related jobs
+```{r}
+all_data_clean |> 
+  count(stem_related) |> 
+  mutate(n = n/12, #accounting for 12 responses from each person.
+         percent=n/sum(n)*100)
+```
+
+### Both Healthcare and STEM related jobs
+```{r}
+all_data_clean |> 
+  count(health_related,stem_related) |> 
+  mutate(n = n/12, #accounting for 12 responses from each person.
+         percent=n/sum(n)*100)
+```
+
+## Binomial GLMM
+
+| Source of Variation                               | Degrees of Freedom (2520 - 1) = 2519 |
+|---------------------------------------------------|--------------------------------------|
+| participant_id                                    | (210 - 1) = 209                      |
+| theta                                             | (3 - 1) = 5                          |
+| direction                                         | (2 - 1) = 1                          |
+| cpLoc                                             | (3 - 1) = 2                          |
+| sigma                                             | (2 - 1) = 1                          |
+| theta x direction                                 | (3 - 1)(2 - 1) = 2                   |
+| theta x cpLoc                                     | (3 - 1)(3 - 1) = 4                   |
+| theta x sigma                                     | (3 - 1)(2 - 1) = 2                   |
+| direction x cpLoc                                 | (3 - 1)(3 - 1) = 4                   |
+| directionigma                                     | (3 - 1)(2 - 1) = 2                   |
+| cpLoc x sigma                                     | (3 - 1)(2 - 1) = 2                   |
+| theta x cpLoc x sigma                             | (6 - 1)(3 - 1)(2 - 1) = 10           |
+| participant_id x theta x cpLoc x sigma - residual | ... = 2275 ???                       |
+|                                                   |                                      |
+
+```{r}
+library(lme4)
+library(emmeans)
+
+mod <- glmer(correct ~ direction*theta_abs*sigma*cpLoc + (1 | participant_id),
+             family = binomial(),
+             control = glmerControl(optimizer = "bobyqa",
+                                    optCtrl   = list(maxfun = 20000)
+             ),
+             data = all_data_clean
+             )
+```
+
+```{r}
+car::Anova(mod)
+anova(mod)
+```
+
+## Identification Accuracy
+
+### Descriptive results
+
+```{r}
+identification_accuracy1 <- all_data_clean |> 
+  select(participant_id, version, cpLoc, sigma, theta, correct, response_no, obs_plot_location) |> 
+  mutate(correct = factor(correct)) |> 
+  ggplot(aes(x = theta, 
+             fill = correct)
+         ) +
+  geom_bar(stat     = "count", 
+           position = "fill") +
+  facet_grid(sigma ~ cpLoc, 
+             labeller = labeller(sigma = sigma_level,
+                                 cpLoc = cploc_level
+                                 )
+             ) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_discrete(labels = theta_level) +
+  scale_fill_manual(values = c("#D3D3D3", "#1B9E77")) +
+  theme_bw() +
+  labs(x = "",
+       y = "",
+       title = str_c("Proportion of Participants who ", "<span style = 'color:#1B9E77'>**correctly**</span>", " and ", 
+       "<span style = 'color:#808080'>**incorrectly**</span>", " identified the <br> change point data in the target panel")
+       ) + 
+  theme(plot.title = ggtext::element_markdown(size = 14),
+        legend.position = "none"
+        ) +
+  coord_flip()
+
+identification_accuracy1
+# ggsave(plot = identification_accuracy1, filename = here("results", plot = "identification-accuracy-1.png"), width = 8, height = 4)
+```
+
+### Model Results
+
+```{r}
+identification_accuracy2 <- emmeans(mod, ~ theta_abs:sigma:direction:cpLoc, type = "response") |>
+  as_tibble() |>
+  mutate(direction = fct_relevel(direction, 
+                                 c("Negative","Positive")
+                                 )
+         ) |> 
+  ggplot(aes(y = theta_abs, 
+             color = direction,
+             shape = direction
+             )
+         ) +
+  geom_point(aes(x = prob), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  scale_y_discrete(labels = theta_level2) +
+  facet_grid(sigma ~ cpLoc, 
+             labeller = labeller(sigma = sigma_level,
+                                 cpLoc = cploc_level
+                                 )
+             ) +
+  theme_bw() +
+  theme(aspect.ratio = 0.6) +
+  scale_color_manual(values = c("#D95F02", "#1B9E77")) +
+  labs(y = "",
+       x = "",
+       # subtitle = "Mean Shift Magnitude",
+       title = "Probability of Correctly Identifying the Change Point Data in the Target Panel",
+       color = "Shift \nDirection",
+       shape = "Shift \nDirection") +
+  guides(shape = guide_legend(reverse = TRUE),
+         color = guide_legend(reverse = TRUE)) +
+  scale_x_continuous(labels = scales::percent)
+
+identification_accuracy2
+# ggsave(plot = identification_accuracy2, filename = here("results", plot = "identification-accuracy-2.png"), width = 8, height = 4)
+```
+
+## Shift Magnitude and Variance
+
+```{r}
+magnitude_odds_level <- c(
+  "theta_abs5 / theta_abs1" = "High / Low Shift",
+  "theta_abs3 / theta_abs1" = "Moderate / Low Shift",
+  "theta_abs5 / theta_abs3" = "High / Moderate Shift"
+)
+
+magnitude_odds <- emmeans(mod, ~ theta_abs | sigma, type = "response", adjust = "dunnet") |>
+  pairs(infer = c(T,T), reverse = TRUE) |> 
+  as_tibble() |>
+  mutate(contrast = fct_relevel(contrast,  
+                                c("theta_abs5 / theta_abs3",
+                                  "theta_abs3 / theta_abs1",
+                                  "theta_abs5 / theta_abs1"
+                                  )
+                                )
+        ) |> 
+  # filter(str_detect(contrast, pattern = "theta_abs5")) |> 
+  ggplot(aes(y = contrast
+             )
+         ) +
+  geom_point(aes(x = odds.ratio), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  geom_vline(xintercept = 1, 
+             color = "darkgray", 
+             linetype = "dashed"
+             ) +
+  scale_y_discrete(labels = magnitude_odds_level) +
+  facet_wrap(~ sigma, ncol = 1,
+             labeller = labeller(sigma = sigma_level)) +
+  theme_bw() +
+  theme(aspect.ratio = 0.25) +
+  labs(y = "",
+       x = "",
+       title = "Odds of Correctly Identifying the Target Panel \nbetween a High Magnitude Shift and a Medium and Low \n(Averaged over Location and Direction)") +
+  scale_x_log10(labels = scales::comma)
+
+magnitude_odds
+# ggsave(plot = magnitude_odds, filename = here("results", plot = "magnitude_OR.png"), width = 8, height = 4)
+```
+
+```{r}
+sigma_odds <- emmeans(mod, ~ sigma|theta_abs, type = "response", adjust = "dunnet") |>
+  pairs(infer = c(T,T))  |> 
+  as_tibble() |>
+  ggplot(aes(y = theta_abs
+             )
+         ) +
+  geom_point(aes(x = odds.ratio), 
+             position = position_dodge(0.6)
+             ) +
+  geom_errorbar(aes(xmin = asymp.LCL, 
+                    xmax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.6)
+                ) +
+  geom_vline(xintercept = 1, 
+             color = "darkgray", 
+             linetype = "dashed"
+             ) +
+  scale_y_discrete(labels = theta_level2) +
+  theme_bw() +
+  theme(aspect.ratio = 0.25) +
+  labs(y = "",
+       x = "",
+       title = "Odds of Correctly Identifying the Target Panel between \nLow and High Variance \n(Averaged over Location and Direction)") +
+  scale_x_log10(labels = scales::comma)
+
+sigma_odds
+# ggsave(plot = sigma_odds, filename = here("results", plot = "variance_OR.png"), width = 8, height = 4)
+```
+
+## Change Point Location and Direction
+
+```{r}
+emmeans(mod,~theta_abs:sigma:direction:cpLoc, type="response") |> 
+  emmeans::joint_tests(by=c("theta_abs","sigma"))
+
+
+emmeans(mod,~direction|cpLoc:theta_abs:sigma, type="response", adjust="tukey")|>
+    pairs(infer = c(T,T)) |> 
+  as.data.frame()
+
+emmeans(mod,~cpLoc|direction:theta_abs:sigma, type="response", adjust="tukey")|>
+  pairs(infer = c(T,T), reverse = TRUE) |> 
+  as.data.frame() 
+```
+
+### Low Variance
+
+```{r}
+low_variance_interaction <- emmeans(mod, ~ theta_abs:sigma:direction:cpLoc, type = "response") |>
+  as_tibble() |> 
+  filter(sigma == 1) |> 
+  mutate(direction = fct_relevel(direction, 
+                                 c("Negative","Positive")
+                                 )
+         ) |> 
+  ggplot(aes(x = cpLoc, 
+             color = direction,
+             shape = direction
+             )
+         ) +
+  geom_point(aes(y = prob), 
+             position = position_dodge(0.3)
+             ) +
+  geom_line(aes(y = prob, 
+                group = direction),
+            position = position_dodge(0.3)
+            ) +
+  geom_errorbar(aes(ymin = asymp.LCL, 
+                    ymax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.3)
+                ) +
+  scale_x_discrete(labels = cploc_level) +
+  facet_wrap(~ theta_abs, ncol = 1,
+             labeller = labeller(theta_abs = theta_level2
+                                 )
+             ) +
+  theme_bw() +
+  theme(aspect.ratio = 0.3) +
+  scale_color_manual(values = c("#D95F02", "#1B9E77")) +
+  labs(y = "",
+       x = "",
+       # subtitle = "Mean Shift Magnitude",
+       title = "Probability of Correctly Identifying the Change Point Data in the Target Panel",
+       color = "Shift \nDirection",
+       shape = "Shift \nDirection") +
+  guides(shape = guide_legend(reverse = TRUE),
+         color = guide_legend(reverse = TRUE)) +
+  scale_y_continuous(labels = scales::percent)
+
+low_variance_interaction
+# ggsave(plot = low_variance_interaction, filename = here("results", plot = "low-variance-interaction.png"), width = 8, height = 6)
+```
+
+### High Variance
+
+```{r}
+high_variance_interaction <- emmeans(mod, ~ theta_abs:sigma:direction:cpLoc, type = "response") |>
+  as_tibble() |> 
+  filter(sigma == 2) |> 
+  mutate(direction = fct_relevel(direction, 
+                                 c("Negative","Positive")
+                                 )
+         ) |> 
+  ggplot(aes(x = cpLoc, 
+             color = direction,
+             shape = direction
+             )
+         ) +
+  geom_point(aes(y = prob), 
+             position = position_dodge(0.3)
+             ) +
+  geom_line(aes(y = prob, 
+                group = direction),
+            position = position_dodge(0.3)
+            ) +
+  geom_errorbar(aes(ymin = asymp.LCL, 
+                    ymax = asymp.UCL
+                    ), 
+                width = 0, 
+                position = position_dodge(0.3)
+                ) +
+  scale_x_discrete(labels = cploc_level) +
+  facet_wrap(~ theta_abs, ncol = 1,
+             labeller = labeller(theta_abs = theta_level2
+                                 )
+             ) +
+  theme_bw() +
+  theme(aspect.ratio = 0.3) +
+  scale_color_manual(values = c("#D95F02", "#1B9E77")) +
+  labs(y = "",
+       x = "",
+       # subtitle = "Mean Shift Magnitude",
+       title = "Probability of Correctly Identifying the Change Point Data in the Target Panel",
+       color = "Shift \nDirection",
+       shape = "Shift \nDirection") +
+  guides(shape = guide_legend(reverse = TRUE),
+         color = guide_legend(reverse = TRUE)) +
+  scale_y_continuous(labels = scales::percent)
+
+high_variance_interaction
+# ggsave(plot = high_variance_interaction, filename = here("results", plot = "high-variance-interaction.png"), width = 8, height = 6)
+```
+
+## Selection Reason
+
+```{r}
+selection_overall <- all_data_clean |> 
+  mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
+         slope = stringr::str_count(choice_reason, "slope"),
+         range = stringr::str_count(choice_reason, "range"),
+         outlier=stringr::str_count(choice_reason, "Outlier"),
+         shape=stringr::str_count(choice_reason, "shape")
+  ) |> 
+  group_by(correct) |> 
+  summarize(cluster=sum(cluster),
+            slope=sum(slope),
+            range=sum(range),
+            outlier=sum(outlier),
+            shape=sum(shape)) |> 
+  pivot_longer(cols=cluster:shape,
+               names_to="response",
+               values_to="count") |> 
+  group_by(correct) |> 
+  mutate(pct= count/sum(count)) |> 
+  arrange(correct, -count) |> 
+  mutate(correct = factor(correct, levels = c(0,1))) |> 
+  mutate(response = factor(response, levels = c("outlier", "cluster", "slope", "range", "shape"))) |> 
+  ggplot(aes(x = pct,
+             y = response,
+             group = correct,
+             fill = correct)) +
+  geom_bar(stat = "identity", position = position_dodge2(1)) +
+  geom_text(aes(label = paste0(round(pct*100, 1), "%")),
+            position = position_dodge2(0.9),
+            hjust = -0.1,
+            size = 3.5) +
+  theme_bw() +
+  labs(y = "",
+       x = "",
+       title = str_c("Proportion of Lineups with each Choice Reasoning selected <br> for ", "<span style = 'color:#1B9E77'>**Correct**</span>", " and ", 
+       "<span style = 'color:#A9A9A9'>**Incorrect**</span>", " Evaluations")) +
+  theme(plot.title = ggtext::element_markdown(size = 14),
+        legend.position = "none"
+        ) +
+  scale_x_continuous(limits = c(0,0.5), labels = scales::percent) +
+  scale_fill_manual(values = c("#D3D3D3", "#1B9E77"))
+selection_overall
+
+# ggsave(plot = selection_overall, filename = here("results", plot = "selection-overall.png"), width = 8, height = 4)
+```
+
+## Confidence
+
+```{r}
+library(ggmosaic)
+
+conf_lowvar <- all_data_clean |> 
+  filter(sigma == 1) |> 
+  mutate(conf_level = factor(conf_level, levels = c("Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"))) |> 
+  mutate(correct = factor(correct, levels = c(1,0), labels = c("Correct", "Incorrect"))) |>
+  ggplot() +
+  geom_mosaic(aes(x = product(correct),
+             fill = conf_level),
+             show.legend = T,
+             color = "black") +
+  facet_nested(cpLoc ~ sigma + theta,
+             labeller = labeller(sigma = sigma_level,
+                                 cpLoc = cploc_level,
+                                 theta = theta_level)
+             ) +
+  scale_fill_brewer(palette = "PuOr",
+                    guide = guide_legend(reverse = TRUE)) +
+  labs(y = "",
+       x = "Evaluation",
+       fill = "I am confident \nin my answer...") +
+  theme_bw() +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
+conf_lowvar
+# ggsave(plot = conf_lowvar, filename = here("results", plot = "conf-levels-lowvar.png"), width = 10, height = 4)
+
+conf_highvar <- all_data_clean |> 
+  filter(sigma == 2) |> 
+  mutate(conf_level = factor(conf_level, levels = c("Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"))) |> 
+  mutate(correct = factor(correct, levels = c(1,0), labels = c("Correct", "Incorrect"))) |>
+  ggplot() +
+  geom_mosaic(aes(x = product(correct),
+             fill = conf_level),
+             show.legend = T,
+             color = "black") +
+  facet_nested(cpLoc ~ sigma + theta,
+             labeller = labeller(sigma = sigma_level, 
+                                 cpLoc = cploc_level,
+                                 theta = theta_level)
+             ) +
+  scale_fill_brewer(palette = "PuOr",
+                    guide = guide_legend(reverse = TRUE)) +
+  labs(y = "",
+       x = "Evaluation",
+       fill = "I am confident \nin my answer...") +
+  theme_bw() +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
+conf_highvar
+# ggsave(plot = conf_highvar, filename = here("results", plot = "conf-levels-highvar.png"), width = 10, height = 4)
+```

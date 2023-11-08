@@ -172,7 +172,7 @@ low_var <- example_data |>
   coord_cartesian(ylim = c(-8,8)) +
   labs(title = "Low Variance")
 low_var
-ggsave(plot = low_var, filename = here("results", plot = "low-variance-parm-examples.png"), width = 12, height = 6)
+ggsave(plot = low_var, filename = here("results", plot = "low-variance-parm-examples.png"), width = 8, height = 4)
 
 high_var <- example_data |> 
   filter(sigma == 2,
@@ -196,7 +196,7 @@ high_var <- example_data |>
   coord_cartesian(ylim = c(-8,8)) +
   labs(title = "High Variance")
 high_var
-ggsave(plot = high_var, filename = here("results", plot = "high-variance-parm-examples.png"), width = 12, height = 6)
+ggsave(plot = high_var, filename = here("results", plot = "high-variance-parm-examples.png"), width = 8, height = 4)
 
 ```
 
