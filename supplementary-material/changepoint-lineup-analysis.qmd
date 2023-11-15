@@ -3,6 +3,7 @@ title: "Manuscript Analysis"
 subtitle: "Can You See The Change? Change Point Detection Using Visual Inference"
 format: html
 editor: source
+embed-resources: true
 execute:
   echo: true
   message: false
@@ -18,6 +19,7 @@ library(yardstick)
 library(caret)
 library(tigerstats)
 library(ggh4x)
+library(patchwork)
 ```
 
 ## Read in Participant Data
@@ -68,50 +70,208 @@ correct_level <- c(
 
 ### Age
 ```{r}
-all_data_clean |> 
+age_demo <- all_data_clean |> 
+  mutate(age = replace_na(age, "No Answer"),
+         age = fct_recode(age,
+                         "18-25" = "Under 19",
+                         "18-25" = "19-25", 
+                         "26-30" = "26-30", 
+                         "31-40" = "31-35",
+                         "31-40" = "36-40",
+                         "41-50" = "41-45", 
+                         "41-50" = "46-50", 
+                         "51-60" = "51-55",
+                         "51-60" = "56-60", 
+                         ">60" = "Over 60",
+                         "No Answer" = "No Answer"
+                         ),
+         age = fct_relevel(age,
+                         levels = c("18-25", "26-30", "31-40", "41-50", "51-60", ">60", "Missing")
+         )
+         )|> 
   count(age) |> 
   mutate(n = n/12, #accounting for 12 responses from each person.
-         percent=n/sum(n)*100)
+         percent=n/sum(n)) |> 
+  ggplot(aes(x = age, 
+             y = percent,
+             label = n
+             )
+         ) +
+  geom_bar(stat = "identity",
+           fill = "steelblue") +
+  geom_text(vjust = -1) +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent,
+                     limits = c(0,1), breaks = seq(0,1,0.2)) + 
+  labs(x = "",
+       y = "",
+       subtitle = "Age")
+
+age_demo
+
+# ggsave(plot = age_demo,  filename = here("results", plot = "age-demo-plot.png"), width = 6, height = 4)
 ```
 
 ### Gender
 ```{r}
-all_data_clean |> 
+gender_demo <- all_data_clean |> 
+  mutate(gender = replace_na(gender, "No Answer"),
+         gender = fct_recode(gender,
+                         "No Answer" = "Prefer not to answer",
+                         "No Answer" = "No Answer",
+                         "Variant/\nNonconforming" = "Variant/Nonconforming"
+                         ),
+         gender = fct_relevel(gender,
+                            c("Male", "Female", "Variant/\nNonconforming", "No Answer"))
+  ) |> 
   count(gender) |> 
   mutate(n = n/12, #accounting for 12 responses from each person.
-         percent=n/sum(n)*100)
+         percent=n/sum(n))  |> 
+  ggplot(aes(x = gender, 
+             y = percent,
+             label = n
+             )
+         ) +
+  geom_bar(stat = "identity",
+           fill = "steelblue") +
+  geom_text(vjust = -1) +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent,
+                     limits = c(0,1), breaks = seq(0,1,0.2)) + 
+  labs(x = "",
+       y = "",
+       subtitle = "Gender")
+
+gender_demo
 ```
 
 ### Educational Attainment
 ```{r}
-all_data_clean |> 
+edu_demo <- all_data_clean |> 
+  mutate(academic_study = replace_na(academic_study, "No Answer"),
+         academic_study = fct_recode(academic_study,
+                         "High School \nor Less" = "High School or Less",
+                         "Some \nUndergraduate \nCourses" = "Some Undergraduate Courses",
+                         "Undergraduate \nDegree" = "Undergraduate Degree",
+                         "Some Graduate \nCourses" = "Some Graduate Courses",
+                         "Graduate Degree" = "Graduate Degree",
+                         "No Answer" = "Prefer not to answer",
+                         "No Answer" = "No Answer",
+                         ),
+         academic_study = fct_relevel(academic_study,
+                            c("High School \nor Less",
+                              "Some \nUndergraduate \nCourses",
+                              "Undergraduate \nDegree",
+                              "Some Graduate \nCourses",
+                              "Graduate Degree",
+                              "No Answer"))
+  ) |>
   count(academic_study) |> 
   mutate(n = n/12, #accounting for 12 responses from each person.
-         percent=n/sum(n)*100)
+         percent=n/sum(n)) |> 
+  ggplot(aes(x = academic_study, 
+             y = percent,
+             label = n
+             )
+         ) +
+  geom_bar(stat = "identity",
+           fill = "steelblue") +
+  geom_text(vjust = -1) +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent,
+                     limits = c(0,1), breaks = seq(0,1,0.2)) + 
+  labs(x = "",
+       y = "",
+       subtitle = "Education")
+edu_demo
 ```
 
 ### Healthcare related jobs
 ```{r}
-all_data_clean |> 
+healthcare_demo <- all_data_clean |> 
+  mutate(health_related = replace_na(health_related, "No Answer"),
+         health_related = fct_recode(health_related,
+                         "No Answer" = "Prefer not to answer",
+                         "No Answer" = "No Answer",
+                         ),
+         health_related = fct_relevel(health_related,
+                            c("Yes", "No", "No Answer"))
+  ) |> 
   count(health_related) |> 
   mutate(n = n/12, #accounting for 12 responses from each person.
-         percent=n/sum(n)*100)
+         percent=n/sum(n)) |> 
+  ggplot(aes(x = health_related, 
+             y = percent,
+             label = n
+             )
+         ) +
+  geom_bar(stat = "identity",
+           fill = "steelblue") +
+  geom_text(vjust = -1) +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent,
+                     limits = c(0,1), breaks = seq(0,1,0.2)) + 
+  labs(x = "",
+       y = "",
+       subtitle = "Work in Healthcare")
+healthcare_demo
 ```
 
 ### STEM related jobs
 ```{r}
-all_data_clean |> 
+stem_demo <- all_data_clean |> 
+  mutate(stem_related = replace_na(stem_related, "No Answer"),
+         stem_related = fct_recode(stem_related,
+                         "No Answer" = "Prefer not to answer",
+                         "No Answer" = "No Answer",
+                         ),
+         stem_related = fct_relevel(stem_related,
+                            c("Yes", "No", "No Answer"))
+  ) |> 
   count(stem_related) |> 
   mutate(n = n/12, #accounting for 12 responses from each person.
-         percent=n/sum(n)*100)
+         percent=n/sum(n)) |> 
+  ggplot(aes(x = stem_related, 
+             y = percent,
+             label = n
+             )
+         ) +
+  geom_bar(stat = "identity",
+           fill = "steelblue") +
+  geom_text(vjust = -1) +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent,
+                     limits = c(0,1), breaks = seq(0,1,0.2)) + 
+  labs(x = "",
+       y = "",
+       subtitle = "Work in STEM")
+stem_demo
 ```
 
-### Both Healthcare and STEM related jobs
+## Demographics Plot
+
 ```{r}
-all_data_clean |> 
-  count(health_related,stem_related) |> 
-  mutate(n = n/12, #accounting for 12 responses from each person.
-         percent=n/sum(n)*100)
+design <- "
+  122
+  153
+  443
+"
+
+design <- c(
+  area(t = 1, b = 1, l = 1, r = 2),
+  area(t = 1, b = 1, l = 3, r = 4),
+  area(t = 2, b = 2, l = 1, r = 4),
+  area(t = 3, b = 3, l = 1, r = 2),
+  area(t = 3, b = 3, l = 3, r = 4)
+)
+
+demo_plot <- age_demo + gender_demo + 
+  edu_demo + 
+  healthcare_demo + stem_demo +
+  plot_layout(design = design)
+demo_plot
+
+ggsave(plot = demo_plot, filename = here("results", plot = "demographic-plot.png"), width = 8, height = 8)
 ```
 
 ## Binomial GLMM
@@ -130,7 +290,7 @@ all_data_clean |>
 | directionigma                                     | (3 - 1)(2 - 1) = 2                   |
 | cpLoc x sigma                                     | (3 - 1)(2 - 1) = 2                   |
 | theta x cpLoc x sigma                             | (6 - 1)(3 - 1)(2 - 1) = 10           |
-| participant_id x theta x cpLoc x sigma - residual | ... = 2275 ???                       |
+| participant_id x theta x cpLoc x sigma - residual | ... = 2275                           |
 |                                                   |                                      |
 
 ```{r}
@@ -157,7 +317,7 @@ anova(mod)
 
 ```{r}
 identification_accuracy1 <- all_data_clean |> 
-  select(participant_id, version, cpLoc, sigma, theta, correct, response_no, obs_plot_location) |> 
+  dplyr::select(participant_id, version, cpLoc, sigma, theta, correct, response_no, obs_plot_location) |> 
   mutate(correct = factor(correct)) |> 
   ggplot(aes(x = theta, 
              fill = correct)
@@ -171,11 +331,11 @@ identification_accuracy1 <- all_data_clean |>
              ) +
   scale_y_continuous(labels = scales::percent) +
   scale_x_discrete(labels = theta_level) +
-  scale_fill_manual(values = c("#D3D3D3", "#1B9E77")) +
+  scale_fill_manual(values = c("#D3D3D3", "steelblue")) +
   theme_bw() +
   labs(x = "",
        y = "",
-       title = str_c("Proportion of Participants who ", "<span style = 'color:#1B9E77'>**correctly**</span>", " and ", 
+       title = str_c("Proportion of Participants who ", "<span style = 'color:steelblue'>**correctly**</span>", " and ", 
        "<span style = 'color:#808080'>**incorrectly**</span>", " identified the <br> change point data in the target panel")
        ) + 
   theme(plot.title = ggtext::element_markdown(size = 14),
@@ -187,52 +347,6 @@ identification_accuracy1
 # ggsave(plot = identification_accuracy1, filename = here("results", plot = "identification-accuracy-1.png"), width = 8, height = 4)
 ```
 
-### Model Results
-
-```{r}
-identification_accuracy2 <- emmeans(mod, ~ theta_abs:sigma:direction:cpLoc, type = "response") |>
-  as_tibble() |>
-  mutate(direction = fct_relevel(direction, 
-                                 c("Negative","Positive")
-                                 )
-         ) |> 
-  ggplot(aes(y = theta_abs, 
-             color = direction,
-             shape = direction
-             )
-         ) +
-  geom_point(aes(x = prob), 
-             position = position_dodge(0.6)
-             ) +
-  geom_errorbar(aes(xmin = asymp.LCL, 
-                    xmax = asymp.UCL
-                    ), 
-                width = 0, 
-                position = position_dodge(0.6)
-                ) +
-  scale_y_discrete(labels = theta_level2) +
-  facet_grid(sigma ~ cpLoc, 
-             labeller = labeller(sigma = sigma_level,
-                                 cpLoc = cploc_level
-                                 )
-             ) +
-  theme_bw() +
-  theme(aspect.ratio = 0.6) +
-  scale_color_manual(values = c("#D95F02", "#1B9E77")) +
-  labs(y = "",
-       x = "",
-       # subtitle = "Mean Shift Magnitude",
-       title = "Probability of Correctly Identifying the Change Point Data in the Target Panel",
-       color = "Shift \nDirection",
-       shape = "Shift \nDirection") +
-  guides(shape = guide_legend(reverse = TRUE),
-         color = guide_legend(reverse = TRUE)) +
-  scale_x_continuous(labels = scales::percent)
-
-identification_accuracy2
-# ggsave(plot = identification_accuracy2, filename = here("results", plot = "identification-accuracy-2.png"), width = 8, height = 4)
-```
-
 ## Shift Magnitude and Variance
 
 ```{r}
@@ -242,8 +356,16 @@ magnitude_odds_level <- c(
   "theta_abs5 / theta_abs3" = "High / Moderate Shift"
 )
 
+
+library(emmeans)
+library(multcomp)
+
 magnitude_odds <- emmeans(mod, ~ theta_abs | sigma, type = "response", adjust = "dunnet") |>
+  # cld(Letters = letters, 
+  #     adjust = "sidak", 
+  #     alpha = 0.05)
   pairs(infer = c(T,T), reverse = TRUE) |> 
+  # emmeans::cld.emmGrid()
   as_tibble() |>
   mutate(contrast = fct_relevel(contrast,  
                                 c("theta_abs5 / theta_abs3",
@@ -257,7 +379,8 @@ magnitude_odds <- emmeans(mod, ~ theta_abs | sigma, type = "response", adjust = 
              )
          ) +
   geom_point(aes(x = odds.ratio), 
-             position = position_dodge(0.6)
+             position = position_dodge(0.6),
+             size = 2
              ) +
   geom_errorbar(aes(xmin = asymp.LCL, 
                     xmax = asymp.UCL
@@ -275,8 +398,8 @@ magnitude_odds <- emmeans(mod, ~ theta_abs | sigma, type = "response", adjust = 
   theme_bw() +
   theme(aspect.ratio = 0.25) +
   labs(y = "",
-       x = "",
-       title = "Odds of Correctly Identifying the Target Panel \nbetween a High Magnitude Shift and a Medium and Low \n(Averaged over Location and Direction)") +
+       x = "(Log) Odds Ratio",
+       title = "Accuracy between Magnitude Shift Levels") +
   scale_x_log10(labels = scales::comma)
 
 magnitude_odds
@@ -291,7 +414,8 @@ sigma_odds <- emmeans(mod, ~ sigma|theta_abs, type = "response", adjust = "dunne
              )
          ) +
   geom_point(aes(x = odds.ratio), 
-             position = position_dodge(0.6)
+             position = position_dodge(0.6),
+             size = 2
              ) +
   geom_errorbar(aes(xmin = asymp.LCL, 
                     xmax = asymp.UCL
@@ -307,12 +431,12 @@ sigma_odds <- emmeans(mod, ~ sigma|theta_abs, type = "response", adjust = "dunne
   theme_bw() +
   theme(aspect.ratio = 0.25) +
   labs(y = "",
-       x = "",
-       title = "Odds of Correctly Identifying the Target Panel between \nLow and High Variance \n(Averaged over Location and Direction)") +
+       x = "(Log) Odd Ratio",
+       title = "Accuracy Comparison between Low and High Variance") +
   scale_x_log10(labels = scales::comma)
 
 sigma_odds
-# ggsave(plot = sigma_odds, filename = here("results", plot = "variance_OR.png"), width = 8, height = 4)
+ggsave(plot = sigma_odds, filename = here("results", plot = "variance_OR.png"), width = 8, height = 4)
 ```
 
 ## Change Point Location and Direction
@@ -343,11 +467,13 @@ low_variance_interaction <- emmeans(mod, ~ theta_abs:sigma:direction:cpLoc, type
          ) |> 
   ggplot(aes(x = cpLoc, 
              color = direction,
-             shape = direction
+             shape = direction,
+             linetype = direction
              )
          ) +
   geom_point(aes(y = prob), 
-             position = position_dodge(0.3)
+             position = position_dodge(0.3),
+             size = 2
              ) +
   geom_line(aes(y = prob, 
                 group = direction),
@@ -366,19 +492,22 @@ low_variance_interaction <- emmeans(mod, ~ theta_abs:sigma:direction:cpLoc, type
              ) +
   theme_bw() +
   theme(aspect.ratio = 0.3) +
-  scale_color_manual(values = c("#D95F02", "#1B9E77")) +
+  scale_color_manual(values = c("#D95F02", "steelblue")) +
   labs(y = "",
        x = "",
        # subtitle = "Mean Shift Magnitude",
-       title = "Probability of Correctly Identifying the Change Point Data in the Target Panel",
+       subtitle = "Accuracy",
        color = "Shift \nDirection",
-       shape = "Shift \nDirection") +
+       shape = "Shift \nDirection",
+       linetype = "Shift \nDirection") +
   guides(shape = guide_legend(reverse = TRUE),
-         color = guide_legend(reverse = TRUE)) +
-  scale_y_continuous(labels = scales::percent)
+         color = guide_legend(reverse = TRUE),
+         linetype = guide_legend(reverse = TRUE)) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_linetype_manual(values = c("dashed", "solid"))
 
 low_variance_interaction
-# ggsave(plot = low_variance_interaction, filename = here("results", plot = "low-variance-interaction.png"), width = 8, height = 6)
+# ggsave(plot = low_variance_interaction, filename = here("results", plot = "low-variance-interaction.png"), width = 6, height = 6)
 ```
 
 ### High Variance
@@ -393,11 +522,13 @@ high_variance_interaction <- emmeans(mod, ~ theta_abs:sigma:direction:cpLoc, typ
          ) |> 
   ggplot(aes(x = cpLoc, 
              color = direction,
-             shape = direction
+             shape = direction,
+             linetype = direction
              )
          ) +
   geom_point(aes(y = prob), 
-             position = position_dodge(0.3)
+             position = position_dodge(0.3),
+             size = 2
              ) +
   geom_line(aes(y = prob, 
                 group = direction),
@@ -416,19 +547,22 @@ high_variance_interaction <- emmeans(mod, ~ theta_abs:sigma:direction:cpLoc, typ
              ) +
   theme_bw() +
   theme(aspect.ratio = 0.3) +
-  scale_color_manual(values = c("#D95F02", "#1B9E77")) +
+  scale_color_manual(values = c("#D95F02", "steelblue")) +
   labs(y = "",
        x = "",
        # subtitle = "Mean Shift Magnitude",
-       title = "Probability of Correctly Identifying the Change Point Data in the Target Panel",
+       subtitle = "Accuracy",
        color = "Shift \nDirection",
-       shape = "Shift \nDirection") +
+       shape = "Shift \nDirection",
+       linetype = "Shift \nDirection") +
   guides(shape = guide_legend(reverse = TRUE),
-         color = guide_legend(reverse = TRUE)) +
-  scale_y_continuous(labels = scales::percent)
+         color = guide_legend(reverse = TRUE),
+         linetype = guide_legend(reverse = TRUE)) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_linetype_manual(values = c("dashed", "solid"))
 
 high_variance_interaction
-# ggsave(plot = high_variance_interaction, filename = here("results", plot = "high-variance-interaction.png"), width = 8, height = 6)
+# ggsave(plot = high_variance_interaction, filename = here("results", plot = "high-variance-interaction.png"), width = 6, height = 6)
 ```
 
 ## Selection Reason
@@ -467,13 +601,13 @@ selection_overall <- all_data_clean |>
   theme_bw() +
   labs(y = "",
        x = "",
-       title = str_c("Proportion of Lineups with each Choice Reasoning selected <br> for ", "<span style = 'color:#1B9E77'>**Correct**</span>", " and ", 
+       title = str_c("Proportion of Lineups with each Choice Reasoning selected <br> for ", "<span style = 'color:steelblue'>**Correct**</span>", " and ", 
        "<span style = 'color:#A9A9A9'>**Incorrect**</span>", " Evaluations")) +
   theme(plot.title = ggtext::element_markdown(size = 14),
         legend.position = "none"
         ) +
   scale_x_continuous(limits = c(0,0.5), labels = scales::percent) +
-  scale_fill_manual(values = c("#D3D3D3", "#1B9E77"))
+  scale_fill_manual(values = c("#D3D3D3", "steelblue"))
 selection_overall
 
 # ggsave(plot = selection_overall, filename = here("results", plot = "selection-overall.png"), width = 8, height = 4)
