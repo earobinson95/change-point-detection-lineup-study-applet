@@ -1,4 +1,4 @@
-/*Input dataset all_data_cleanas lineup*/
+/*Input dataset as work.lineup*/
 
 data lineup;
 set lineup;
@@ -11,10 +11,6 @@ educ_code= 1*(academic_study="High School or Less") + 2*(academic_study="Some Un
 5*(academic_study="Graduate Degree");
 run;
 
-data lineup_c;
-set lineup;
-where correct=1;
-run;
 
 /*Correct and incorrect controlling for magnitude and variance*/
 
@@ -33,8 +29,8 @@ run;
 proc freq data=lineup order=data;
 title "Accuracy vs confidence: controlling for magnitude and direction";
 tables sigma*theta_abs*correct*conf_level/cmh chisq measures nocol nopct cl;
-tables sigma*correct*conf_level/noprint cmh chisq measures cl;
-tables theta_abs*correct*conf_level/noprint cmh chisq measures cl;
+/*tables sigma*correct*conf_level/noprint cmh chisq measures cl;*/
+/*tables theta_abs*correct*conf_level/noprint cmh chisq measures cl;*/
 run;
 
 /*magnitude/variance*/
