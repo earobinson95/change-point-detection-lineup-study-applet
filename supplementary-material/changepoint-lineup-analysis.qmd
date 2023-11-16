@@ -431,12 +431,12 @@ sigma_odds <- emmeans(mod, ~ sigma|theta_abs, type = "response", adjust = "dunne
   theme_bw() +
   theme(aspect.ratio = 0.25) +
   labs(y = "",
-       x = "(Log) Odd Ratio",
+       x = "(Log) Odds Ratio",
        title = "Accuracy Comparison between Low and High Variance") +
   scale_x_log10(labels = scales::comma)
 
 sigma_odds
-ggsave(plot = sigma_odds, filename = here("results", plot = "variance_OR.png"), width = 8, height = 4)
+# ggsave(plot = sigma_odds, filename = here("results", plot = "variance_OR.png"), width = 8, height = 4)
 ```
 
 ## Change Point Location and Direction
