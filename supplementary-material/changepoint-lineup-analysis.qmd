@@ -22,6 +22,12 @@ library(ggh4x)
 library(patchwork)
 ```
 
+## Signal-Noise Ratio
+
++ Plot correlation between this and accuracy?
++ Mu(1+theta)/sigma from the real/actual data.
++ Detection Accuracy curve (0 - "Now we can see it") -- activation curve... just noticable difference (how low can you go until it is not noticable?)
+
 ## Read in Participant Data
 
 ```{r}
