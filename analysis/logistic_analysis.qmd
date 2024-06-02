@@ -117,5 +117,14 @@ SN_p(0.90) #90% correct identification
 
 ```
 
+Calculating confidence intervals
+
+```{r}
+library(drc)
+
+mod_drm <- drm(prop_correct~SN_ratio,fct=L.3(fixed=c(NA,1,NA)),type="continuous",data=merged)
+
+ED(mod_drm,respLev=c(50,75,90),interval="delta")
+```
 
 
