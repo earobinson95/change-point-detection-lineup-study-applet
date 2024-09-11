@@ -1,0 +1,126 @@
+---
+title: "Change Point Analysis"
+format: 
+  html:
+    toc: true
+    code-fold: true
+    toc-location: left
+    toc-depth: 4
+    code-annotations: hover
+    embed-resources: true
+---
+
+
+
+# Input Data
+
+## Packages
+
+::: callout-note
+I used the `changepoint` package to test for a change in mean in the data set. The `cpt.mean()` package tested this using the AMOC method, which was suitable for data with a single change point.
+:::
+```{r}
+library(tidyverse)
+if(require("changepoint")){
+    print("lme4 is loaded correctly")
+} else {
+    print("trying to install changepoint")
+    install.packages("changepoint")
+    if(require(changepoint)){
+        print("changepoint installed and loaded")
+    } else {
+        stop("could not install changepoint")
+    }
+}
+```
+
+## Plot Data
+```{r}
+#| output: false
+files <-list.files(path="../plots/data",full.names=T)
+df <- files |> map_dfr(read_csv) 
+```
+
+
+## Picture details
+
+
+
+```{r}
+#| output: false
+
+pic_details <- read_csv("../plots/picture_details.csv") |> 
+  rename(picid = lineup_id) |> 
+  select(picid,theta,cpLoc,sigma,version)
+```
+
+
+# Change Point Analysis
+
+::: callout-note
+Only analyzed target plots.
+:::
+
+```{r}
+#| warning: false
+
+cploc_CPD <- function(x){
+  cpt.mean(x, method="AMOC",class=FALSE)->cploc # <1>
+  cploc
+}
+
+mean_diff <- function(x){
+  cpt.mean(x, method="AMOC",class=TRUE)->cploc 
+  param.est(cploc)$mean |> diff() |> as.numeric()
+}
+cp_test_results <- df |> 
+  filter(panel=="target") |>
+  group_by(picid) |> 
+  summarize(change_point = cploc_CPD(value)[1],
+            confvalue = cploc_CPD(value)[2] |> round(4),
+            shift_size = mean_diff(value) |> round(1)) |> 
+  mutate(CP_detected = case_when(change_point==30 | confvalue <0.90~"No", # <2>
+                                 .default="Yes")) |> # <2> 
+ungroup()
+
+cp_test_results |> left_join(pic_details,by="picid") |>  #<3>
+  mutate(visual_changepoint = round(30*cpLoc,2)) |> 
+  relocate(visual_changepoint,.before=change_point) |> 
+  relocate(shift_size,.before= theta) -> cp_test_results
+
+cp_test_results |>  
+DT::datatable()
+```
+
+
+1. Outputs a vector with length 2: estimated change point location and "confidence value". 
+
+2. If the change point is set at 30, this means there was no detected change point. If the confidence value < 0.90 when the change point is less than 30, this means the algorithm is not too sure that we have a change point.
+
+3. Joining the target plot distribution details with the change point results.
+
+:::callout-warning
+Confidence value is not the same as the confidence level in a confidence level interval. It's basically telling us if the algorithm is sure that there is indeed a change point there.
+:::
+
+
+## Confidence Value Plots
+
+```{r}
+confvalue_plt <- cp_test_results |> 
+mutate(Location=case_when(visual_changepoint == 10~"Early",
+                visual_changepoint == 15~"Middle",
+                visual_changepoint == 20~"Late"),
+MagDir = case_when(theta ==-5 ~"- High Shift", theta ==5 ~"+ High Shift", theta==3~ "+ Medium Shift", theta==-3~ "- Medium Shift", theta == 1~" + Low", theta == - 1~" - Low"),
+Variance = case_when(sigma==1~"Low",sigma==2~"High")) |> 
+mutate(MagDir = factor(MagDir, levels=c("- High Shift","- Medium Shift"," - Low"," + Low","+ Medium Shift","+ High Shift")),
+Variance = factor(Variance,levels=c("Low","High")),
+Location = factor(Location,levels=c("Early","Middle","Late"))) |> 
+dplyr::select(confvalue,CP_detected,Location,MagDir,Variance)
+
+confvalue_plt |> ggplot(aes(y=MagDir,x=confvalue)) + facet_grid(Location~ Variance) + geom_bar(stat="identity") + theme_bw()
+```
+
+::: callout-warning
+I don't know why the confidence value is peaking at 2! It's supposed to all be below 1.
+:::
