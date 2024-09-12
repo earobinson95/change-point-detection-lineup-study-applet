@@ -22,7 +22,7 @@ I used the `changepoint` package to test for a change in mean in the data set. T
 ```{r}
 library(tidyverse)
 if(require("changepoint")){
-    print("lme4 is loaded correctly")
+    print("changepoint is loaded correctly")
 } else {
     print("trying to install changepoint")
     install.packages("changepoint")
@@ -32,6 +32,7 @@ if(require("changepoint")){
         stop("could not install changepoint")
     }
 }
+library(here)
 ```
 
 ## Plot Data
@@ -53,6 +54,16 @@ pic_details <- read_csv("../plots/picture_details.csv") |>
   rename(picid = lineup_id) |> 
   select(picid,theta,cpLoc,sigma,version)
 ```
+## Identification Probabilities
+
+```{r}
+all_data_clean <- read_csv(here("data", "lineup_clean.csv")) |> 
+  mutate(across(lineup_id:version, ~ as.factor(.x)),
+         direction = fct_relevel(direction, c("Positive", "Negative"))
+         )
+
+
+```
 
 
 # Change Point Analysis
@@ -66,7 +77,7 @@ Only analyzed target plots.
 
 cploc_CPD <- function(x){
   cpt.mean(x, method="AMOC",class=FALSE)->cploc # <1>
-  cploc
+  cploc |> as.numeric()
 }
 
 mean_diff <- function(x){
@@ -77,16 +88,17 @@ cp_test_results <- df |>
   filter(panel=="target") |>
   group_by(picid) |> 
   summarize(change_point = cploc_CPD(value)[1],
-            confvalue = cploc_CPD(value)[2] |> round(4),
-            shift_size = mean_diff(value) |> round(1)) |> 
+            confvalue = cploc_CPD(value)[2] |> round(4)#,
+            # shift_size = mean_diff(value) |> round(1)
+) |> 
   mutate(CP_detected = case_when(change_point==30 | confvalue <0.90~"No", # <2>
                                  .default="Yes")) |> # <2> 
 ungroup()
 
 cp_test_results |> left_join(pic_details,by="picid") |>  #<3>
+  # relocate(shift_size,.before= theta) |> 
   mutate(visual_changepoint = round(30*cpLoc,2)) |> 
-  relocate(visual_changepoint,.before=change_point) |> 
-  relocate(shift_size,.before= theta) -> cp_test_results
+  relocate(visual_changepoint,.before=change_point) -> cp_test_results
 
 cp_test_results |>  
 DT::datatable()
@@ -108,19 +120,129 @@ Confidence value is not the same as the confidence level in a confidence level i
 
 ```{r}
 confvalue_plt <- cp_test_results |> 
+filter(theta!=0) |> # <1>
 mutate(Location=case_when(visual_changepoint == 10~"Early",
                 visual_changepoint == 15~"Middle",
                 visual_changepoint == 20~"Late"),
-MagDir = case_when(theta ==-5 ~"- High Shift", theta ==5 ~"+ High Shift", theta==3~ "+ Medium Shift", theta==-3~ "- Medium Shift", theta == 1~" + Low", theta == - 1~" - Low"),
-Variance = case_when(sigma==1~"Low",sigma==2~"High")) |> 
-mutate(MagDir = factor(MagDir, levels=c("- High Shift","- Medium Shift"," - Low"," + Low","+ Medium Shift","+ High Shift")),
+          MagDir = case_when(theta ==-5 ~"- High", theta ==5 ~"+ High", theta==3~ "+ Medium", theta==-3~ "- Medium", theta == 1~" + Low", theta == - 1~" - Low"),
+          Variance = case_when(sigma==1~"Low",sigma==2~"High"))  |> 
+mutate(MagDir = factor(MagDir, levels=c("- High","- Medium"," - Low"," + Low","+ Medium","+ High")),
 Variance = factor(Variance,levels=c("Low","High")),
 Location = factor(Location,levels=c("Early","Middle","Late"))) |> 
-dplyr::select(confvalue,CP_detected,Location,MagDir,Variance)
+dplyr::select(confvalue,CP_detected,Location,MagDir,Variance,version)
 
-confvalue_plt |> ggplot(aes(y=MagDir,x=confvalue)) + facet_grid(Location~ Variance) + geom_bar(stat="identity") + theme_bw()
+confvalue_plt |> 
+dplyr::select(-CP_detected) |> 
+group_by(MagDir, Variance,Location) |> 
+summarize(avg_confvalue = mean(confvalue)) |> 
+ungroup() |> 
+ggplot(aes(y=MagDir,x=avg_confvalue)) + 
+facet_grid(Location~ Variance,labeller=label_both) + 
+geom_bar(stat="identity") + 
+theme_bw() +
+labs(y = "Theta \n(Mean Shift + Direction)",
+       x = "Confidence Value",
+       title = "Change Point Analysis (changepoint::cpt.mean()) confidence values"
+       ) 
+
 ```
+
+1. taking out Rorschach plots
 
 ::: callout-warning
 I don't know why the confidence value is peaking at 2! It's supposed to all be below 1.
+
+**FIXED: It added the two confidence value from the 2 versions.**
 :::
+
+::: callout-note
+This looks similar to the identification probability plots.
+:::
+
+
+```{r}
+
+all_data_clean |>
+  select(participant_id, version, cpLoc, sigma, theta, correct, response_no, obs_plot_location) |> 
+   mutate(Location = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667"
+                            ),
+          MagDir = case_when(theta ==-5 ~"- High", theta ==5 ~"+ High", theta==3~ "+ Medium", theta==-3~ "- Medium", theta == 1~" + Low", theta == - 1~" - Low"),
+          Variance = case_when(sigma==1~"Low",sigma==2~"High"))  |> 
+mutate(MagDir = factor(MagDir, levels=c("- High","- Medium"," - Low"," + Low","+ Medium","+ High")),
+Variance = factor(Variance,levels=c("Low","High")),
+Location = factor(Location,levels=c("Early","Middle","Late"))) |> 
+  group_by(Location, Variance, MagDir) |> 
+  summarize(prop_correct = sum(correct)/n())|> 
+  ggplot(aes(y = MagDir, 
+             x = prop_correct)
+         ) +
+  geom_bar(stat = "identity",
+           fill = "#1F87B4") +
+  facet_grid(Location ~ Variance, 
+             labeller = label_both) +
+  theme_bw() +
+  labs(y = "Theta \n(Mean Shift + Direction)",
+       x = "",
+       title = "Proportion of Participants who correctly identified the target panel"
+       ) + 
+  theme(plot.title = ggtext::element_markdown(size = 14)
+        )
+```
+
+## Change Point with Visual Inference
+
+```{r}
+prop_correct_df <- all_data_clean |>
+  select(participant_id, version, cpLoc, sigma, theta, correct, response_no, obs_plot_location) |> 
+   mutate(Location = fct_recode(cpLoc,
+                            "Early" = "0.333333333",
+                            "Middle" = "0.5",
+                            "Late" = "0.666666667"
+                            ),
+          MagDir = case_when(theta ==-5 ~"- High", theta ==5 ~"+ High", theta==3~ "+ Medium", theta==-3~ "- Medium", theta == 1~" + Low", theta == - 1~" - Low"),
+          Variance = case_when(sigma==1~"Low",sigma==2~"High")) |> 
+mutate(MagDir = factor(MagDir, levels=c("- High","- Medium"," - Low"," + Low","+ Medium","+ High")),
+Variance = factor(Variance,levels=c("Low","High")),
+Location = factor(Location,levels=c("Early","Middle","Late"))) |> 
+  group_by(version, Location, Variance, MagDir) |> 
+  summarize(prop_correct = sum(correct)/n())
+
+
+confvalue_plt |>
+left_join(prop_correct_df,by=c("MagDir","Variance","Location","version")) ->comp
+
+comp |> 
+ggplot(aes(x=confvalue,y=prop_correct)) + 
+# geom_text(aes(label=MagDir))+
+geom_point(aes(shape=MagDir),size=3) +
+#geom_label(aes(label=Location),nudge_x=0.1)+
+geom_hline(yintercept=0.5) + 
+geom_vline(xintercept=0.5) + 
+facet_grid(Location~Variance,labeller=label_both)+
+theme_bw() +
+scale_shape_manual(values=c(3,4,0,16,17,18))+
+labs(x = "Change Point Analysis Confidence",
+       y = "Identification Probability",
+       title = ""
+       ) 
+
+
+comp |> 
+ggplot(aes(x=confvalue,y=prop_correct)) + 
+# geom_text(aes(label=MagDir))+
+geom_point(aes(shape=MagDir),size=3) +
+#geom_label(aes(label=Location),nudge_x=0.1)+
+geom_hline(yintercept=0.5) + 
+geom_vline(xintercept=0.5) + 
+# facet_grid(Location~Variance,labeller=label_both)+
+theme_bw() +
+scale_shape_manual(values=c(3,4,0,16,17,18))+
+labs(x = "Change Point Analysis Confidence",
+       y = "Identification Probability",
+       title = ""
+       ) 
+```
+
