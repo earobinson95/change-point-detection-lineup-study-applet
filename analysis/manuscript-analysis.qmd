@@ -438,25 +438,28 @@ high_variance_interaction
 ```{r}
 selection_overall <- all_data_clean |> 
   mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
-         slope = stringr::str_count(choice_reason, "slope"),
-         range = stringr::str_count(choice_reason, "range"),
-         outlier=stringr::str_count(choice_reason, "Outlier"),
-         shape=stringr::str_count(choice_reason, "shape")
+         slope   = stringr::str_count(choice_reason, "slope"),
+         range   = stringr::str_count(choice_reason, "range"),
+         outlier = stringr::str_count(choice_reason, "Outlier"),
+         shape   = stringr::str_count(choice_reason, "shape"),
+         other   = stringr::str_count(choice_reason, "Other")
   ) |> 
   group_by(correct) |> 
   summarize(cluster=sum(cluster),
             slope=sum(slope),
             range=sum(range),
             outlier=sum(outlier),
-            shape=sum(shape)) |> 
-  pivot_longer(cols=cluster:shape,
+            shape=sum(shape),
+            other = sum(other)
+) |> 
+  pivot_longer(cols=cluster:other,
                names_to="response",
                values_to="count") |> 
   group_by(correct) |> 
   mutate(pct= count/sum(count)) |> 
   arrange(correct, -count) |> 
   mutate(correct = factor(correct, levels = c(0,1))) |> 
-  mutate(response = factor(response, levels = c("outlier", "cluster", "slope", "range", "shape"))) |> 
+  mutate(response = factor(response, levels = c("outlier", "cluster", "slope", "range", "shape", "other"))) |> 
   ggplot(aes(x = pct,
              y = response,
              group = correct,
@@ -699,4 +702,68 @@ conf_highvar <- all_data_clean |>
   theme_bw()
 conf_highvar
 ggsave(plot = conf_highvar, filename = here("results", plot = "conf-levels-highvar.png"), width = 8, height = 4)
+```
+
+
+## Distribution of Null Panel Selection
+
+```{r}
+
+library(RColorBrewer)
+nb.cols <- 16
+mycolors <- colorRampPalette(brewer.pal(16, "Greens"))(nb.cols)
+
+freqNum = function(data){
+  data2 <- data |> 
+    mutate(freq_order = 1:n())
+  return(data2)
+}
+
+rorschach_summary <- all_data_clean |> 
+filter(correct == 0) |> 
+group_by(dataset_id, version, sigma, theta, cpLoc, direction) |> 
+count(response_no) |> 
+arrange(dataset_id, version, sigma, theta, cpLoc, direction, -n) |> 
+nest(data = c(response_no, n)) |>
+mutate(data2 = map(data, freqNum)) |> 
+unnest(data2) |> 
+select(-data)
+
+rorschach_summary |> 
+filter(sigma == 1) |> 
+  ggplot(aes(x = as.factor(version),
+             y = n
+             )
+         ) +
+  geom_bar(stat = "identity",
+           position = "stack",
+           show.legend = F,
+           aes(fill = fct_rev(as.factor(freq_order)))
+           ) +
+  facet_grid(sigma + theta ~ cpLoc) +
+  theme_bw() +
+  scale_fill_manual(values = mycolors) +
+  labs(x = "Version",
+       y = "Proportion of Selections",
+       fill = "Identification")
+
+
+
+rorschach_summary |> 
+filter(sigma == 2) |> 
+  ggplot(aes(x = as.factor(version),
+             y = n
+             )
+         ) +
+  geom_bar(stat = "identity",
+           position = "stack",
+           show.legend = F,
+           aes(fill = fct_rev(as.factor(freq_order)))
+           ) +
+  facet_grid(sigma + theta ~ cpLoc) +
+  theme_bw() +
+  scale_fill_manual(values = mycolors) +
+  labs(x = "Version",
+       y = "Proportion of Selections",
+       fill = "Identification")
 ```
