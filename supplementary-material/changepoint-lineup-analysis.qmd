@@ -89,10 +89,9 @@ age_demo <- all_data_clean |>
                          "51-60" = "51-55",
                          "51-60" = "56-60", 
                          ">60" = "Over 60",
-                         "No Answer" = "No Answer"
+                         "Missing" = "No Answer"
                          ),
-         age = fct_relevel(age,
-                         levels = c("18-25", "26-30", "31-40", "41-50", "51-60", ">60", "Missing")
+         age = fct_relevel(age, "18-25", "26-30", "31-40", "41-50", "51-60", ">60", "Missing"
          )
          )|> 
   count(age) |> 
@@ -107,6 +106,11 @@ age_demo <- all_data_clean |>
            fill = "steelblue") +
   geom_text(vjust = -1) +
   theme_bw() +
+  theme(plot.title = element_text(size = 12),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 12)
+        ) +
   scale_y_continuous(labels = scales::percent,
                      limits = c(0,1), breaks = seq(0,1,0.2)) + 
   labs(x = "",
@@ -127,8 +131,7 @@ gender_demo <- all_data_clean |>
                          "No Answer" = "No Answer",
                          "Variant/\nNonconforming" = "Variant/Nonconforming"
                          ),
-         gender = fct_relevel(gender,
-                            c("Male", "Female", "Variant/\nNonconforming", "No Answer"))
+         gender = fct_relevel(gender, "Male", "Female", "Variant/\nNonconforming", "No Answer")
   ) |> 
   count(gender) |> 
   mutate(n = n/12, #accounting for 12 responses from each person.
@@ -142,6 +145,11 @@ gender_demo <- all_data_clean |>
            fill = "steelblue") +
   geom_text(vjust = -1) +
   theme_bw() +
+  theme(plot.title = element_text(size = 12),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 12)
+        ) +
   scale_y_continuous(labels = scales::percent,
                      limits = c(0,1), breaks = seq(0,1,0.2)) + 
   labs(x = "",
@@ -165,12 +173,12 @@ edu_demo <- all_data_clean |>
                          "No Answer" = "No Answer",
                          ),
          academic_study = fct_relevel(academic_study,
-                            c("High School \nor Less",
+                                      "High School \nor Less",
                               "Some \nUndergraduate \nCourses",
                               "Undergraduate \nDegree",
                               "Some Graduate \nCourses",
                               "Graduate Degree",
-                              "No Answer"))
+                              "No Answer")
   ) |>
   count(academic_study) |> 
   mutate(n = n/12, #accounting for 12 responses from each person.
@@ -184,6 +192,11 @@ edu_demo <- all_data_clean |>
            fill = "steelblue") +
   geom_text(vjust = -1) +
   theme_bw() +
+  theme(plot.title = element_text(size = 12),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 12)
+        ) +
   scale_y_continuous(labels = scales::percent,
                      limits = c(0,1), breaks = seq(0,1,0.2)) + 
   labs(x = "",
@@ -201,7 +214,7 @@ healthcare_demo <- all_data_clean |>
                          "No Answer" = "No Answer",
                          ),
          health_related = fct_relevel(health_related,
-                            c("Yes", "No", "No Answer"))
+                                      "Yes", "No", "No Answer")
   ) |> 
   count(health_related) |> 
   mutate(n = n/12, #accounting for 12 responses from each person.
@@ -215,6 +228,11 @@ healthcare_demo <- all_data_clean |>
            fill = "steelblue") +
   geom_text(vjust = -1) +
   theme_bw() +
+  theme(plot.title = element_text(size = 12),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 12)
+        ) +
   scale_y_continuous(labels = scales::percent,
                      limits = c(0,1), breaks = seq(0,1,0.2)) + 
   labs(x = "",
@@ -231,8 +249,7 @@ stem_demo <- all_data_clean |>
                          "No Answer" = "Prefer not to answer",
                          "No Answer" = "No Answer",
                          ),
-         stem_related = fct_relevel(stem_related,
-                            c("Yes", "No", "No Answer"))
+         stem_related = fct_relevel(stem_related, "Yes", "No", "No Answer")
   ) |> 
   count(stem_related) |> 
   mutate(n = n/12, #accounting for 12 responses from each person.
@@ -246,6 +263,11 @@ stem_demo <- all_data_clean |>
            fill = "steelblue") +
   geom_text(vjust = -1) +
   theme_bw() +
+  theme(plot.title = element_text(size = 12),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 12)
+        ) +
   scale_y_continuous(labels = scales::percent,
                      limits = c(0,1), breaks = seq(0,1,0.2)) + 
   labs(x = "",
@@ -277,7 +299,7 @@ demo_plot <- age_demo + gender_demo +
   plot_layout(design = design)
 demo_plot
 
-ggsave(plot = demo_plot, filename = here("results", plot = "demographic-plot.png"), width = 8, height = 8)
+ggsave(plot = demo_plot, filename = here("results", plot = "demographic-plot.png"), width = 9, height = 8)
 ```
 
 ## Binomial GLMM
@@ -344,13 +366,16 @@ identification_accuracy1 <- all_data_clean |>
        title = str_c("Proportion of Participants who ", "<span style = 'color:steelblue'>**correctly**</span>", " and ", 
        "<span style = 'color:#808080'>**incorrectly**</span>", " identified the <br> change point data in the target panel")
        ) + 
-  theme(plot.title = ggtext::element_markdown(size = 14),
-        legend.position = "none"
+  theme(plot.title = ggtext::element_markdown(size = 10),
+        legend.position = "none",
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 8)
         ) +
   coord_flip()
 
 identification_accuracy1
-# ggsave(plot = identification_accuracy1, filename = here("results", plot = "identification-accuracy-1.png"), width = 8, height = 4)
+# ggsave(plot = identification_accuracy1, filename = here("results", plot = "identification-accuracy-1.png"), width = 6, height = 4)
 ```
 
 ## Shift Magnitude and Variance
@@ -380,7 +405,6 @@ magnitude_odds <- emmeans(mod, ~ theta_abs | sigma, type = "response", adjust = 
                                   )
                                 )
         ) |> 
-  # filter(str_detect(contrast, pattern = "theta_abs5")) |> 
   ggplot(aes(y = contrast
              )
          ) +
@@ -403,13 +427,18 @@ magnitude_odds <- emmeans(mod, ~ theta_abs | sigma, type = "response", adjust = 
              labeller = labeller(sigma = sigma_level)) +
   theme_bw() +
   theme(aspect.ratio = 0.25) +
+  theme(plot.title = element_text(size = 12),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 12)
+        ) +
   labs(y = "",
        x = "(Log) Odds Ratio",
        title = "Accuracy between Magnitude Shift Levels") +
   scale_x_log10(labels = scales::comma)
 
 magnitude_odds
-# ggsave(plot = magnitude_odds, filename = here("results", plot = "magnitude_OR.png"), width = 8, height = 4)
+# ggsave(plot = magnitude_odds, filename = here("results", plot = "magnitude_OR.png"), width = 6, height = 4)
 ```
 
 ```{r}
@@ -436,13 +465,18 @@ sigma_odds <- emmeans(mod, ~ sigma|theta_abs, type = "response", adjust = "dunne
   scale_y_discrete(labels = theta_level2) +
   theme_bw() +
   theme(aspect.ratio = 0.25) +
+  theme(plot.title = element_text(size = 12),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 12)
+        ) +
   labs(y = "",
        x = "(Log) Odds Ratio",
        title = "Accuracy Comparison between Low and High Variance") +
   scale_x_log10(labels = scales::comma)
 
 sigma_odds
-# ggsave(plot = sigma_odds, filename = here("results", plot = "variance_OR.png"), width = 8, height = 4)
+# ggsave(plot = sigma_odds, filename = here("results", plot = "variance_OR.png"), width = 6, height = 4)
 ```
 
 ## Change Point Location and Direction
@@ -497,6 +531,11 @@ low_variance_interaction <- emmeans(mod, ~ theta_abs:sigma:direction:cpLoc, type
                                  )
              ) +
   theme_bw() +
+  theme(plot.title = element_text(size = 12),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 12)
+        ) +
   theme(aspect.ratio = 0.3) +
   scale_color_manual(values = c("#D95F02", "steelblue")) +
   labs(y = "",
@@ -553,6 +592,11 @@ high_variance_interaction <- emmeans(mod, ~ theta_abs:sigma:direction:cpLoc, typ
              ) +
   theme_bw() +
   theme(aspect.ratio = 0.3) +
+  theme(plot.title = element_text(size = 12),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 12)
+        ) +
   scale_color_manual(values = c("#D95F02", "steelblue")) +
   labs(y = "",
        x = "",
@@ -610,13 +654,16 @@ selection_overall <- all_data_clean |>
        title = str_c("Proportion of Lineups with each Choice Reasoning selected <br> for ", "<span style = 'color:steelblue'>**Correct**</span>", " and ", 
        "<span style = 'color:#A9A9A9'>**Incorrect**</span>", " Evaluations")) +
   theme(plot.title = ggtext::element_markdown(size = 14),
-        legend.position = "none"
+        legend.position = "none",
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 12)
         ) +
   scale_x_continuous(limits = c(0,0.5), labels = scales::percent) +
   scale_fill_manual(values = c("#D3D3D3", "steelblue"))
 selection_overall
 
-# ggsave(plot = selection_overall, filename = here("results", plot = "selection-overall.png"), width = 8, height = 4)
+# ggsave(plot = selection_overall, filename = here("results", plot = "selection-overall.png"), width = 6, height = 4)
 ```
 
 ## Confidence
@@ -645,7 +692,12 @@ conf_lowvar <- all_data_clean |>
        fill = "I am confident \nin my answer...") +
   theme_bw() +
   theme(axis.text.y = element_blank(),
-        axis.ticks.y = element_blank())
+        axis.ticks.y = element_blank()) +
+  theme(plot.title = element_text(size = 12),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 10)
+        )
 conf_lowvar
 # ggsave(plot = conf_lowvar, filename = here("results", plot = "conf-levels-lowvar.png"), width = 10, height = 4)
 
@@ -670,7 +722,153 @@ conf_highvar <- all_data_clean |>
        fill = "I am confident \nin my answer...") +
   theme_bw() +
   theme(axis.text.y = element_blank(),
-        axis.ticks.y = element_blank())
+        axis.ticks.y = element_blank()) +
+  theme(plot.title = element_text(size = 12),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 12)
+        ) 
 conf_highvar
 # ggsave(plot = conf_highvar, filename = here("results", plot = "conf-levels-highvar.png"), width = 10, height = 4)
 ```
+
+## Target changepoint comparison analysis
+
+::: callout-note
+I used the `changepoint` package to test for a change in mean in the data set. The `cpt.mean()` package tested this using the AMOC method, which was suitable for data with a single change point.
+:::
+
+```{r}
+if(require("changepoint")){
+    print("changepoint is loaded correctly")
+} else {
+    print("trying to install changepoint")
+    install.packages("changepoint")
+    if(require(changepoint)){
+        print("changepoint installed and loaded")
+    } else {
+        stop("could not install changepoint")
+    }
+}
+```
+
+```{r}
+files <- list.files(path = "data", full.names = T)
+df <- files |> 
+  map_dfr(read_csv) 
+
+pic_details <- read_csv("data/picture_details.csv") |> 
+  rename(picid = lineup_id) |> 
+  dplyr::select(picid, theta, cpLoc, sigma, version)
+```
+
+```{r}
+cploc_CPD <- function(x){
+  cpt.mean(x, method="AMOC",class=FALSE)->cploc # <1>
+  cploc |> as.numeric()
+}
+
+mean_diff <- function(x){
+  cpt.mean(x, method="AMOC",class=TRUE)->cploc 
+  param.est(cploc)$mean |> diff() |> as.numeric()
+}
+
+cp_test_results <- df |> 
+  filter(panel=="target") |>
+  group_by(picid) |> 
+  summarize(change_point = cploc_CPD(value)[1],
+            confvalue = cploc_CPD(value)[2] |> round(4)#,
+            # shift_size = mean_diff(value) |> round(1)
+) |> 
+  mutate(CP_detected = case_when(change_point==30 | confvalue <0.90~"No", # <2>
+                                 .default="Yes")) |> # <2> 
+ungroup()
+
+cp_test_results |> left_join(pic_details,by="picid") |>  #<3>
+  # relocate(shift_size,.before= theta) |> 
+  mutate(visual_changepoint = round(30*cpLoc,2)) |> 
+  relocate(visual_changepoint,.before = change_point) -> cp_test_results
+
+cp_test_results
+```
+
+### Confidence Value Plots
+
+```{r}
+confvalue_plt <- cp_test_results |> 
+filter(theta!=0) |> # <1>
+mutate(Location=case_when(visual_changepoint == 10~"Early",
+                visual_changepoint == 15~"Middle",
+                visual_changepoint == 20~"Late"),
+          MagDir = case_when(theta ==-5 ~"- High", theta ==5 ~"+ High", theta==3~ "+ Medium", theta==-3~ "- Medium", theta == 1~" + Low", theta == - 1~" - Low"),
+          Variance = case_when(sigma==1~"Low",sigma==2~"High"))  |> 
+mutate(MagDir = factor(MagDir, levels=c("- High","- Medium"," - Low"," + Low","+ Medium","+ High")),
+Variance = factor(Variance,levels=c("Low","High")),
+Location = factor(Location,levels=c("Early","Middle","Late"))) |> 
+dplyr::select(confvalue,CP_detected,Location,MagDir,Variance,version)
+
+comp <- confvalue_plt |>
+left_join(prop_correct_df, 
+          by = c("MagDir","Variance","Location","version")
+          )
+```
+
+
+```{r}
+changepoint <- comp |> 
+ggplot(aes(x = confvalue,
+           y = prop_correct)
+       ) + 
+geom_point(aes(shape = MagDir),
+           size = 3
+           ) +
+geom_hline(yintercept = 0.5) + 
+geom_vline(xintercept = 0.5) + 
+facet_grid(Location ~ Variance,
+           labeller = label_both)+
+theme_bw() +
+theme(plot.title = element_text(size = 12),
+      axis.title = element_text(size = 12),
+      plot.subtitle = element_text(size = 12),
+      axis.text = element_text(size = 12),
+      aspect.ratio = 1
+      ) +
+scale_shape_manual(values=c(3,4,0,16,17,18))+
+  scale_y_continuous(labels = scales::percent) +
+labs(x = "Change Point Analysis Confidence",
+     subtitle = "Identification Probability",
+     title = "",
+     y = ""
+     ) 
+changepoint
+# ggsave(plot = changepoint, filename = here("results", plot = "changepoint.png"), width = 6, height = 8)
+```
+
+```{r}
+changepoint_cplocXvariance <- comp |> 
+  ggplot(aes(x = confvalue,
+             y = prop_correct)
+         ) + 
+geom_point(aes(shape = MagDir),
+           size = 3
+           ) +
+geom_hline(yintercept = 0.5) + 
+geom_vline(xintercept = 0.5) + 
+scale_y_continuous(labels = scales::percent) +
+theme_bw() +
+theme(plot.title = element_text(size = 12),
+      plot.subtitle = element_text(size = 12),
+      axis.title = element_text(size = 12),
+      axis.text = element_text(size = 12),
+      aspect.ratio = 1
+      ) +
+scale_shape_manual(values=c(3,4,0,16,17,18))+
+labs(x = "Change Point Analysis Confidence",
+     y = "",
+     subtitle = "Identification Probability",
+     title = ""
+     ) 
+changepoint_cplocXvariance
+# ggsave(plot = changepoint_cplocXvariance, filename = here("results", plot = "changepoint_cplocXvariance.png"), width = 6, height = 5)
+```
+

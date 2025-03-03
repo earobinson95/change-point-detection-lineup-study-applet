@@ -7,7 +7,10 @@ Miguel Fudolig, Emily A. Robinson, and Susan VanderPlas
 
 + **Data Analysis Code:** The code used to replicate the analysis in this paper can be in `changepoint-lineup-analysis.qmd`.
 
++ **Simulated Lineup Data:** The generated `x` and `y` points used in plotting the lineups and calculating comparisons to change point analysis can be found in a zip file `lineup-data.zip`.
+
 + **Study Applet Code:** The code used to create the study applet via RShiny can be found on GitHub at <https://github.com/earobinson95/change-point-detection-lineup-study-applet>
+
 
 ## Participant Data Contents
 

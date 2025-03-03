@@ -178,13 +178,14 @@ identification_accuracy1 <- all_data_clean |>
        title = str_c("Proportion of Participants who ", "<span style = 'color:#1B9E77'>**correctly**</span>", " and ", 
        "<span style = 'color:#808080'>**incorrectly**</span>", " identified the <br> change point data in the target panel")
        ) + 
-  theme(plot.title = ggtext::element_markdown(size = 14),
+  theme(plot.title = ggtext::element_markdown(size = 10),
+        axis.text = element_text(size = 10),
         legend.position = "none"
         ) +
   coord_flip()
 
 identification_accuracy1
-ggsave(plot = identification_accuracy1, filename = here("results", plot = "identification-accuracy-1.png"), width = 8, height = 4)
+# ggsave(plot = identification_accuracy1, filename = here("results", plot = "identification-accuracy-1.png"), width = 9, height = 4)
 ```
 
 ### Model Results
@@ -217,7 +218,10 @@ identification_accuracy2 <- emmeans(mod, ~ theta_abs:sigma:direction:cpLoc, type
                                  )
              ) +
   theme_bw() +
-  theme(aspect.ratio = 0.6) +
+  theme(aspect.ratio = 0.6,
+        plot.title = element_text(size = 10),
+        axis.text = element_text(size = 10)
+) +
   scale_color_manual(values = c("#D95F02", "#1B9E77")) +
   labs(y = "",
        x = "",
@@ -230,7 +234,7 @@ identification_accuracy2 <- emmeans(mod, ~ theta_abs:sigma:direction:cpLoc, type
   scale_x_continuous(labels = scales::percent)
 
 identification_accuracy2
-ggsave(plot = identification_accuracy2, filename = here("results", plot = "identification-accuracy-2.png"), width = 8, height = 4)
+# ggsave(plot = identification_accuracy2, filename = here("results", plot = "identification-accuracy-2.png"), width = 9, height = 4)
 ```
 
 ## Shift Magnitude and Variance
@@ -273,14 +277,17 @@ magnitude_odds <- emmeans(mod, ~ theta_abs | sigma, type = "response", adjust = 
   facet_wrap(~ sigma, ncol = 1,
              labeller = labeller(sigma = sigma_level)) +
   theme_bw() +
-  theme(aspect.ratio = 0.25) +
+  theme(aspect.ratio = 0.25,
+        plot.title = element_text(size = 10),
+        axis.text = element_text(size = 10)
+) +
   labs(y = "",
        x = "",
-       title = "Odds of Correctly Identifying the Target Panel \nbetween a High Magnitude Shift and a Medium and Low \n(Averaged over Location and Direction)") +
+       title = "Odds of Correctly Identifying the Target Panel between \na High Magnitude Shift and a Medium and Low \n(Averaged over Location and Direction)") +
   scale_x_log10(labels = scales::comma)
 
 magnitude_odds
-ggsave(plot = magnitude_odds, filename = here("results", plot = "magnitude_OR.png"), width = 8, height = 4)
+# ggsave(plot = magnitude_odds, filename = here("results", plot = "magnitude_OR.png"), width = 6, height = 4)
 ```
 
 ```{r}
@@ -305,14 +312,17 @@ sigma_odds <- emmeans(mod, ~ sigma|theta_abs, type = "response", adjust = "dunne
              ) +
   scale_y_discrete(labels = theta_level2) +
   theme_bw() +
-  theme(aspect.ratio = 0.25) +
+  theme(aspect.ratio = 0.25,
+        plot.title = element_text(size = 10),
+        axis.text = element_text(size = 10)
+) +
   labs(y = "",
        x = "",
-       title = "Odds of Correctly Identifying the Target Panel between \nLow and High Variance \n(Averaged over Location and Direction)") +
+       title = "Odds of Correctly Identifying the Target Panel \nbetween Low and High Variance \n(Averaged over Location and Direction)") +
   scale_x_log10(labels = scales::comma)
 
 sigma_odds
-# ggsave(plot = sigma_odds, filename = here("results", plot = "variance_OR.png"), width = 8, height = 4)
+# ggsave(plot = sigma_odds, filename = here("results", plot = "variance_OR.png"), width = 6, height = 4)
 ```
 
 ## Change Point Location and Direction
@@ -365,12 +375,15 @@ low_variance_interaction <- emmeans(mod, ~ theta_abs:sigma:direction:cpLoc, type
                                  )
              ) +
   theme_bw() +
-  theme(aspect.ratio = 0.3) +
+  theme(aspect.ratio = 0.3,
+        plot.title = element_text(size = 10),
+        axis.text = element_text(size = 10)
+) +
   scale_color_manual(values = c("#D95F02", "#1B9E77")) +
   labs(y = "",
        x = "",
        # subtitle = "Mean Shift Magnitude",
-       title = "Probability of Correctly Identifying the Change Point Data in the Target Panel",
+       title = "Probability of Correctly Identifying \nthe Change Point Data in the Target Panel",
        color = "Shift \nDirection",
        shape = "Shift \nDirection") +
   guides(shape = guide_legend(reverse = TRUE),
@@ -378,7 +391,7 @@ low_variance_interaction <- emmeans(mod, ~ theta_abs:sigma:direction:cpLoc, type
   scale_y_continuous(labels = scales::percent)
 
 low_variance_interaction
-# ggsave(plot = low_variance_interaction, filename = here("results", plot = "low-variance-interaction.png"), width = 8, height = 6)
+# ggsave(plot = low_variance_interaction, filename = here("results", plot = "low-variance-interaction.png"), width = 6, height = 6)
 ```
 
 ### High Variance
@@ -415,7 +428,10 @@ high_variance_interaction <- emmeans(mod, ~ theta_abs:sigma:direction:cpLoc, typ
                                  )
              ) +
   theme_bw() +
-  theme(aspect.ratio = 0.3) +
+  theme(aspect.ratio = 0.3,
+        plot.title = element_text(size = 10),
+        axis.text = element_text(size = 10)
+) +
   scale_color_manual(values = c("#D95F02", "#1B9E77")) +
   labs(y = "",
        x = "",
@@ -428,7 +444,7 @@ high_variance_interaction <- emmeans(mod, ~ theta_abs:sigma:direction:cpLoc, typ
   scale_y_continuous(labels = scales::percent)
 
 high_variance_interaction
-# ggsave(plot = high_variance_interaction, filename = here("results", plot = "high-variance-interaction.png"), width = 8, height = 6)
+# ggsave(plot = high_variance_interaction, filename = here("results", plot = "high-variance-interaction.png"), width = 6, height = 6)
 ```
 
 ## Selection Reason
@@ -474,186 +490,18 @@ selection_overall <- all_data_clean |>
        x = "",
        title = str_c("Proportion of Lineups with each Choice Reasoning selected <br> for ", "<span style = 'color:#1B9E77'>**Correct**</span>", " and ", 
        "<span style = 'color:#A9A9A9'>**Incorrect**</span>", " Evaluations")) +
-  theme(plot.title = ggtext::element_markdown(size = 14),
-        legend.position = "none"
+  theme(plot.title = ggtext::element_markdown(size = 10),
+        legend.position = "none",
+        axis.text = element_text(size = 10)
         ) +
   scale_x_continuous(limits = c(0,0.5), labels = scales::percent) +
   scale_fill_manual(values = c("#D3D3D3", "#1B9E77"))
 selection_overall
 
-ggsave(plot = selection_overall, filename = here("results", plot = "selection-overall.png"), width = 8, height = 4)
+# ggsave(plot = selection_overall, filename = here("results", plot = "selection-overall.png"), width = 6, height = 4)
 ```
 
-
-## Reasoning (shift magnitude)
-
-```{r}
-all_data_clean |> 
-  mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
-         slope = stringr::str_count(choice_reason, "slope"),
-         range = stringr::str_count(choice_reason, "range"),
-         outlier=stringr::str_count(choice_reason, "Outlier"),
-         shape=stringr::str_count(choice_reason, "shape")
-  ) |> 
-  group_by(correct, theta_abs) |> 
-  summarize(cluster=sum(cluster),
-            slope=sum(slope),
-            range=sum(range),
-            outlier=sum(outlier),
-            shape=sum(shape)) |> 
-  pivot_longer(cols=cluster:shape,
-               names_to="response",
-               values_to="count") |> 
-  group_by(correct, theta_abs) |> 
-  mutate(pct= count/sum(count)) |> 
-  arrange(correct, -count) |> 
-  mutate(correct = factor(correct, levels = c(0,1))) |> 
-  mutate(response = factor(response, levels = c("outlier", "cluster", "slope", "range", "shape"))) |> 
-  ggplot(aes(x = pct,
-             y = response,
-             group = correct,
-             fill = correct)) +
-  geom_bar(stat = "identity", position = position_dodge2(1)) +
-  geom_text(aes(label = paste0(round(pct*100, 1), "%")),
-            position = position_dodge2(0.9),
-            hjust = -0.1,
-            size = 3) +
-  theme_bw() +
-  labs(y = "",
-       x = "",
-       title = str_c("Proportion of Lineups with each Choice Reasoning selected <br> for ", "<span style = 'color:#1B9E77'>**Correct**</span>", " and ", 
-       "<span style = 'color:#A9A9A9'>**Incorrect**</span>", " Evaluations")) +
-  theme(plot.title = ggtext::element_markdown(size = 14),
-        legend.position = "none"
-        ) +
-  facet_grid(~theta_abs,
-             labeller = labeller(theta_abs = theta_level2)) +
-  scale_x_continuous(limits = c(0,0.5), labels = scales::percent) +
-  scale_fill_manual(values = c("#D3D3D3", "#1B9E77"))
-```
-
-
-## Correct & Incorrect (Sigma and Change Point)
-
-```{r}
-all_data_clean |> 
-  mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
-         slope = stringr::str_count(choice_reason, "slope"),
-         range = stringr::str_count(choice_reason, "range"),
-         outlier=stringr::str_count(choice_reason, "Outlier"),
-         shape=stringr::str_count(choice_reason, "shape")
-  ) |> 
-  group_by(correct, sigma, cpLoc) |> 
-  summarize(cluster=sum(cluster),
-            slope=sum(slope),
-            range=sum(range),
-            outlier=sum(outlier),
-            shape=sum(shape)) |> 
-  pivot_longer(cols=cluster:shape,
-               names_to="response",
-               values_to="count") |> 
-  group_by(correct, sigma, cpLoc) |> 
-  mutate(pct= count/sum(count)) |> 
-  arrange(correct, -count) |> 
-  mutate(correct = factor(correct, levels = c(0,1))) |> 
-  mutate(response = factor(response, levels = c("outlier", "cluster", "slope", "range", "shape"))) |> 
-  ggplot(aes(x = pct,
-             y = response,
-             group = correct,
-             fill = correct)) +
-  geom_bar(stat = "identity", position = position_dodge2(1)) +
-  geom_text(aes(label = paste0(round(pct*100, 1), "%")),
-            position = position_dodge2(0.9),
-            hjust = -0.1,
-            size = 3) +
-  theme_bw() +
-  labs(y = "",
-       x = "",
-       title = str_c("Proportion of Lineups with each Choice Reasoning selected <br> for ", "<span style = 'color:#1B9E77'>**Correct**</span>", " and ", 
-       "<span style = 'color:#A9A9A9'>**Incorrect**</span>", " Evaluations")) +
-  theme(plot.title = ggtext::element_markdown(size = 14),
-        legend.position = "none"
-        ) +
-  facet_grid(sigma~cpLoc) +
-  scale_x_continuous(limits = c(0,0.5), labels = scales::percent) +
-  scale_fill_manual(values = c("#D3D3D3", "#1B9E77"))
-```
-## Correct & Incorrect (Sigma and Theta)
-
-```{r}
-all_data_clean |> 
-  mutate(cluster=stringr::str_count(choice_reason,"Clustering"),
-         slope = stringr::str_count(choice_reason, "slope"),
-         range = stringr::str_count(choice_reason, "range"),
-         outlier=stringr::str_count(choice_reason, "Outlier"),
-         shape=stringr::str_count(choice_reason, "shape")
-  ) |> 
-  group_by(correct, sigma, theta_abs) |> 
-  summarize(cluster=sum(cluster),
-            slope=sum(slope),
-            range=sum(range),
-            outlier=sum(outlier),
-            shape=sum(shape)) |> 
-  pivot_longer(cols=cluster:shape,
-               names_to="response",
-               values_to="count") |> 
-  group_by(correct, sigma, theta_abs) |> 
-  mutate(pct= count/sum(count)) |> 
-  arrange(correct, -count) |> 
-  mutate(correct = factor(correct, levels = c(0,1))) |> 
-  mutate(response = factor(response, levels = c("outlier", "cluster", "slope", "range", "shape"))) |> 
-  ggplot(aes(x = pct,
-             y = response,
-             group = correct,
-             fill = correct)) +
-  geom_bar(stat = "identity", position = position_dodge2(1)) +
-  geom_text(aes(label = paste0(round(pct*100, 1), "%")),
-            position = position_dodge2(0.9),
-            hjust = -0.1,
-            size = 3) +
-  theme_bw() +
-  labs(y = "",
-       x = "",
-       title = str_c("Proportion of Lineups with each Choice Reasoning selected <br> for ", "<span style = 'color:#1B9E77'>**Correct**</span>", " and ", 
-       "<span style = 'color:#A9A9A9'>**Incorrect**</span>", " Evaluations")) +
-  theme(plot.title = ggtext::element_markdown(size = 14),
-        legend.position = "none"
-        ) +
-  facet_grid(sigma~theta_abs) +
-  scale_x_continuous(limits = c(0,0.5), labels = scales::percent) +
-  scale_fill_manual(values = c("#D3D3D3", "#1B9E77"))
-```
 ## Confidence
-
-```{r}
-# all_data_clean |> 
-#   mutate(correct = factor(correct, levels = c(1,0))) |>
-#   group_by(correct, conf_level) |> 
-#   reframe(count = n()) |> 
-#   ungroup() |> 
-#   group_by(correct) |> 
-#   mutate(eval_count = sum(count),
-#          prop = count/eval_count) |> 
-#   ungroup() |> 
-#   mutate(total_count = sum(count),
-#          eval_prop = eval_count/total_count,
-#          just = if_else(correct == "Correct", 1, 0)) |>
-#   ggplot(aes(x = correct,
-#              y = prop,
-#              fill = conf_level,
-#              width = eval_prop)
-#          ) +
-#   geom_bar(stat = "identity",
-#            position = "stack",
-#            just = 0.5)  +
-#   theme_test() +
-#   scale_x_discrete(expand = c(0.12,0.12)) +
-#   scale_y_continuous(expand = c(0.01,0.01), labels = scales::percent) +
-#   scale_fill_brewer(palette = "PuOr", direction = -1) +
-#   labs(y = "",
-#        x = "Evaluation",
-#        fill = "Confidence Level")
-```
 
 ```{r}
 library(ggmosaic)
@@ -677,9 +525,12 @@ conf_lowvar <- all_data_clean |>
   labs(y = "",
        x = "Evaluation",
        fill = "Confidence Level") +
-  theme_bw()
+  theme_bw() +
+  theme(plot.title = element_text(size = 10),
+        axis.text = element_text(size = 10)
+)
 conf_lowvar
-ggsave(plot = conf_lowvar, filename = here("results", plot = "conf-levels-lowvar.png"), width = 8, height = 4)
+ggsave(plot = conf_lowvar, filename = here("results", plot = "conf-levels-lowvar.png"), width = 9, height = 4)
 
 conf_highvar <- all_data_clean |> 
   filter(sigma == 2) |> 
@@ -699,71 +550,10 @@ conf_highvar <- all_data_clean |>
   labs(y = "",
        x = "Evaluation",
        fill = "Confidence Level") +
-  theme_bw()
+  theme_bw()+
+  theme(plot.title = element_text(size = 10),
+        axis.text = element_text(size = 10)
+)
 conf_highvar
-ggsave(plot = conf_highvar, filename = here("results", plot = "conf-levels-highvar.png"), width = 8, height = 4)
-```
-
-
-## Distribution of Null Panel Selection
-
-```{r}
-
-library(RColorBrewer)
-nb.cols <- 16
-mycolors <- colorRampPalette(brewer.pal(16, "Greens"))(nb.cols)
-
-freqNum = function(data){
-  data2 <- data |> 
-    mutate(freq_order = 1:n())
-  return(data2)
-}
-
-rorschach_summary <- all_data_clean |> 
-filter(correct == 0) |> 
-group_by(dataset_id, version, sigma, theta, cpLoc, direction) |> 
-count(response_no) |> 
-arrange(dataset_id, version, sigma, theta, cpLoc, direction, -n) |> 
-nest(data = c(response_no, n)) |>
-mutate(data2 = map(data, freqNum)) |> 
-unnest(data2) |> 
-select(-data)
-
-rorschach_summary |> 
-filter(sigma == 1) |> 
-  ggplot(aes(x = as.factor(version),
-             y = n
-             )
-         ) +
-  geom_bar(stat = "identity",
-           position = "stack",
-           show.legend = F,
-           aes(fill = fct_rev(as.factor(freq_order)))
-           ) +
-  facet_grid(sigma + theta ~ cpLoc) +
-  theme_bw() +
-  scale_fill_manual(values = mycolors) +
-  labs(x = "Version",
-       y = "Proportion of Selections",
-       fill = "Identification")
-
-
-
-rorschach_summary |> 
-filter(sigma == 2) |> 
-  ggplot(aes(x = as.factor(version),
-             y = n
-             )
-         ) +
-  geom_bar(stat = "identity",
-           position = "stack",
-           show.legend = F,
-           aes(fill = fct_rev(as.factor(freq_order)))
-           ) +
-  facet_grid(sigma + theta ~ cpLoc) +
-  theme_bw() +
-  scale_fill_manual(values = mycolors) +
-  labs(x = "Version",
-       y = "Proportion of Selections",
-       fill = "Identification")
+# ggsave(plot = conf_highvar, filename = here("results", plot = "conf-levels-highvar.png"), width = 9, height = 4)
 ```
